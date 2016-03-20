@@ -169,9 +169,11 @@ pair<string,int> get_hostname_and_port(string &header){
 
 void pass_along_request(int client_socket, string &header){
 	printf("would be passing it along\n");
+	//TODO: pass along
 }
 
 void parse_client_header(int client_socket, string &header){
+	//TODO: 5 special file types
 	cout << header << endl;
 	if (header.substr(0,3) != "GET"){
 		pass_along_request(client_socket, header);
@@ -208,6 +210,7 @@ void parse_client_header(int client_socket, string &header){
 		int content_length = get_content_length(header);
 		if (true){ //TODO: cache condition
 			open_ext_conn(client_socket, header, (char *) host.first.c_str(), host.second, content_length);
+			//TODO: MUTEX
 		}
 
 	}
