@@ -15,6 +15,7 @@
 #include <arpa/inet.h>
 #include <crypt.h>
 #include <algorithm>
+#include "myproxy.h"
 #define CL(x,y) memset(x,y,sizeof(x))
 #define FUCK puts("FUCK");
 
