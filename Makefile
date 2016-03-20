@@ -9,7 +9,8 @@ myproxy:
 	g++ -o myproxy myproxy.cpp ${CFLAGS} ${LIB} -I.
 
 test:
-	g++ -o test myproxy.cpp test.cpp ${CFLAGS} ${LIB} -I.
+	make clean
+	g++ -o test test.cpp myproxy.cpp ${CFLAGS} ${LIB} -I. -D TEST
 	
 clean:
-	rm -f myproxy
+	rm -f myproxy test

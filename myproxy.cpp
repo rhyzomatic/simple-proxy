@@ -233,6 +233,7 @@ void *connection_handler(void *client_socket_ptr){
 	return 0;
 }
 
+#ifndef TEST
 int main(int argc, char *argv[]){
 	int server_socket = socket(AF_INET, SOCK_STREAM, 0);
 	long val = 1;
@@ -268,3 +269,4 @@ int main(int argc, char *argv[]){
 	close(server_socket);
 	return 0;
 }
+#endif
