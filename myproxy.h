@@ -1,5 +1,9 @@
 // myproxy.h
 //
+#ifndef LZZ_myproxy_h
+#define LZZ_myproxy_h
+#define LZZ_INLINE inline
+
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -17,11 +21,8 @@
 #include <arpa/inet.h>
 #include <crypt.h>
 #include <algorithm>
-#ifndef LZZ_myproxy_h
-#define LZZ_myproxy_h
-#define LZZ_INLINE inline
 
-using namespace std;
+
 
 void error_handler (string error_string);
 int send_all (int client_socket, unsigned char * buffer, int length);
