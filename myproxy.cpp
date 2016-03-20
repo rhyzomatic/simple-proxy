@@ -196,21 +196,18 @@ void parse_client_header(int client_socket, string header){
 		string hostname(get_hostname(header));
 		cout << hostname << "\n";
 		int content_length = get_content_length(header);
-		open_ext_conn(client_socket, header, (char *) hostname.c_str(), content_length);
+		if (true){ //TODO: cache condition
+			open_ext_conn(client_socket, header, (char *) hostname.c_str(), content_length);
+		}
 
 	}
 }
-
-
-
-
-
 
 void *connection_handler(void *client_socket_ptr){
 	int client_socket = *(int*) client_socket_ptr;
 	printf("Client connection accepted.\n");
 	int conn_status = 0;
-	while(conn_status == 0){
+	while(conn_status == 0){ //TODO: redundant while?
 		string header = rec_header(client_socket);
 
 		parse_client_header(client_socket, header);
