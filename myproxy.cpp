@@ -173,6 +173,31 @@ void pass_along_request(int client_socket, string &header){
 	//TODO: pass along
 }
 
+string get_IMS(string &header){
+	size_t IMS_location = header.find("If-Modified-Since");
+	string IMS;
+
+	if (IMS_location != string::npos){ //TODO: this is untested
+		IMS_location += 17; // length of If-Modified-Since string
+		IMS = header.substr(IMS_location, header.find("\r\n", IMS_location) - IMS_location);
+		cout << IMS_location << "\n";
+	}
+	return IMS;
+}
+
+bool get_cache(string &header){
+	size_t CC_location = header.find("Cache-Control");
+	bool no_cache = false;
+	if (CC_location != string::npos){
+		CC_location += 15; // length of "Cache-Control: "
+		string CC(header.substr(CC_location, 8)); // 8 is length of no-cache
+		if (CC == "no-cache"){
+			no_cache = true;
+		}
+	}
+	return no_cache;
+}
+
 void parse_client_header(int client_socket, string &header){
 	//TODO: 5 special file types
 	cout << header << endl;
@@ -185,24 +210,10 @@ void parse_client_header(int client_socket, string &header){
 		string address(header.substr(4, header.find(" ", 4)-4)); //TODO: check if this is legit... maybe first line doesn't necessarily have a space and the HTTP/1.1 or whatever
 		cout << address << "\n";
 
-		size_t IMS_location = header.find("If-Modified-Since");
-		size_t CC_location = header.find("Cache-Control");
-		string IMS("");
-		bool no_cache = false;
+		
+		string IMS = get_IMS(header);
 
-		if (IMS_location != string::npos){ //TODO: this is untested
-			IMS_location += 17; // length of If-Modified-Since string
-			IMS = header.substr(IMS_location, header.find("\r\n", IMS_location) - IMS_location);
-			cout << IMS_location << "\n";
-		}
-
-		if (CC_location != string::npos){
-			CC_location += 15; // length of "Cache-Control: "
-			string CC(header.substr(CC_location, 8)); // 8 is length of no-cache
-			if (CC == "no-cache"){
-				no_cache = true;
-			}
-		}
+		bool no_cache = get_cache(header);
 
 		cout << no_cache << "\n";
 
