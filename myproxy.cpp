@@ -13,6 +13,8 @@
 #include <sstream>
 #include <netdb.h>
 #include <arpa/inet.h>
+#include <crypt.h>
+#include <algorithm>
 #define CL(x,y) memset(x,y,sizeof(x))
 #define FUCK puts("FUCK");
 
@@ -115,13 +117,13 @@ void parse_remote_header(int client_socket, int ext_conn_socket){
 
 
 
-void open_ext_conn(int client_socket, string header, char *hostname, int content_length = 0){
+void open_ext_conn(int client_socket, string &header, char *hostname, int port, int content_length = 0){
 	struct hostent* host;
 	host = gethostbyname(hostname);
 	struct sockaddr_in server_addr;
 	bzero((char *) &server_addr, sizeof(server_addr));
 	server_addr.sin_family = AF_INET;
-	server_addr.sin_port = htons(80); // TODO: generalize this
+	server_addr.sin_port = htons(port);
 	bcopy((char *) host -> h_addr, (char *) &server_addr.sin_addr.s_addr, host -> h_length);
 	int ext_conn_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
@@ -145,24 +147,32 @@ void open_ext_conn(int client_socket, string header, char *hostname, int content
 	}
 }
 
-string get_hostname(string header){
+pair<string,int> get_hostname_and_port(string &header){
 	size_t hostname_location = header.find("Host: ");
 	if (hostname_location == string::npos){
 		error_handler("Could not extract hostame from header");
 	}
 	else {
-		return header.substr(hostname_location + 6, header.find("\r\n", hostname_location) - hostname_location - 6);
+		size_t end_pos = header.find("\r\n", hostname_location);
+		size_t port_pos = header.find(":", hostname_location + 6); // skip the http://
+		int port = 80;
+		if (port_pos != string::npos && port_pos < end_pos) {// port number exist
+			end_pos = port_pos; 
+			port = atoi(header.c_str() + port_pos + 1);
+			printf("THIS IS PORT %d\n",port);
+		}
+
+		string hostname = header.substr(hostname_location + 6, end_pos - hostname_location - 6);
+		return make_pair(hostname,port);
 	}
 }
 
-
-
-void pass_along_request(int client_socket, string header){
+void pass_along_request(int client_socket, string &header){
 	printf("would be passing it along\n");
 }
 
-void parse_client_header(int client_socket, string header){
-//	cout << header << endl;
+void parse_client_header(int client_socket, string &header){
+	cout << header << endl;
 	if (header.substr(0,3) != "GET"){
 		pass_along_request(client_socket, header);
 	}
@@ -193,11 +203,11 @@ void parse_client_header(int client_socket, string header){
 
 		cout << no_cache << "\n";
 
-		string hostname(get_hostname(header));
-		cout << hostname << "\n";
+		pair<string,int> host = get_hostname_and_port(header);
+		cout << host.first << " " << host.second << "\n";
 		int content_length = get_content_length(header);
 		if (true){ //TODO: cache condition
-			open_ext_conn(client_socket, header, (char *) hostname.c_str(), content_length);
+			open_ext_conn(client_socket, header, (char *) host.first.c_str(), host.second, content_length);
 		}
 
 	}
