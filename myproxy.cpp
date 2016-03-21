@@ -18,6 +18,7 @@
 #include "myproxy.h"
 #define CL(x,y) memset(x,y,sizeof(x))
 #define FUCK puts("FUCK");
+#define BUF_SIZE 1000
 
 using namespace std;
 
@@ -105,7 +106,10 @@ string get_crypt(string url){
 	data.initialized = 0;
 	char *enc;
 	enc = crypt_r(url.c_str(), "$1$00$", &data);
-	return string(enc + 6);
+	string s = string(enc + 6);
+	replace(s.begin(), s.end(), '/', '_');
+	replace(s.begin(), s.end(), '.', '-');
+	return s;
 }
 
 void parse_remote_header(int client_socket, int ext_conn_socket, string url, bool cache){
@@ -116,18 +120,35 @@ void parse_remote_header(int client_socket, int ext_conn_socket, string url, boo
 	// recieve the body from remote
 	char body [content_length];
 	CL(body,0);
-	rec_all(ext_conn_socket, body, content_length);
+	//rec_all(ext_conn_socket, body, content_length); // no more rec_all, we need buffer
+
+	FILE *file = NULL;
+
+	if (cache) {
+		string enc = get_crypt(url);
+		FILE *file = fopen(enc.c_str(), "w+");
+	}
+
+	char buf[BUF_SIZE];
+	char *current_ptr = (char*) payload;
+	while (length > 0){
+		int rec_char = recv(ext_conn_socket, current_ptr, length, 0);
+		if (rec_char < 1){
+			printf("Error: error recieving payload.\n");
+			return -1;
+		}
+		//send(...)
+		fwrite(header.c_str(), 1, header.length(), file);
+
+		current_ptr += rec_char;
+		length -= rec_char;
+	}
+
+	if (cache) fclose(file);
 
 	// pass header and body along to client
-	send_all(client_socket, (unsigned char *) header.c_str(), header.length());
-	send_all(client_socket, (unsigned char *)body, content_length);
-	if (cache){
-		string enc = get_crypt(url);
-		cout << enc << endl;
-		FILE *file = fopen(enc.c_str(), "w+");
-		fwrite(header.c_str(), 1, header.length(), file);
-		fclose(file);
-	}
+//	send_all(client_socket, (unsigned char *) header.c_str(), header.length());
+//	send_all(client_socket, (unsigned char *)body, content_length);
 }
 
 

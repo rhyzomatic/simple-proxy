@@ -1,3 +1,2 @@
-/myproxy
-/cache/*
-/test
+*
+!*.*
