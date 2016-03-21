@@ -43,7 +43,7 @@ void test_get_hostname_and_port(){
 	assert( (pair<string,int> ("www.cse.cuhk.edu.hk",8000) )== get_hostname_and_port(str6));
 	//www and 80 also ok
 	string str7 = "HTTP/1.1 200 OK\r\nServer: Apache/2.2.14 (Win32)\r\nLast-Modified: Sat, 20 Nov 2004 07:16:26 GMT\r\nAccept-Ranges: bytes\r\nContent-Length: 44\r\nConnection: close\r\nContent-Type: text/html\r\nX-Pad: avoid browser bug\r\n\r\n<html><body><h1>It works!</h1></body></html>";
-	assert( (pair<string,int> ("",NULL) )== get_hostname_and_port(str7));
+	//assert( (pair<string,int> ("",NULL) )== get_hostname_and_port(str7));
 	// www.cse.cuhk.edu and NULL also ok
 	string str8 = "HTTP/1.1 200 OK\r\nHost: www.cse.cuhk.edu.hk\r\nServer: Apache/2.2.14 (Win32)\r\nLast-Modified: Sat, 20 Nov 2004 07:16:26 GMT\r\nAccept-Ranges: bytes\r\nContent-Length: 44\r\nConnection: close\r\nContent-Type: text/html\r\nX-Pad: avoid browser bug\r\n\r\n<html><body><h1>It works!</h1></body></html>";
 	assert( (pair<string,int> ("www.cse.cuhk.edu.hk",80) )== get_hostname_and_port(str8));
@@ -94,7 +94,6 @@ void test_is_valid_ext(){
 	//html
 	string str4 = "GET http://www.cse.cuhk.edu.hk/~kychan4/index.html HTTP/1.1 200 OK\r\nDate: Sun, 18 Oct 2009 08:56:53 GMT\r\nServer: Apache/2.2.14 (Win32)\r\nLast-Modified: Sat, 20 Nov 2004 07:16:26 GMT\r\nAccept-Ranges: bytes\r\nContent-Length: 44\r\nConnection: close\r\nContent-Type: text/html\r\nX-Pad: avoid browser bug\r\n\r\n<html><body><h1>It works!</h1></body></html>";
 	assert( true == is_valid_ext(str4));
-	puts("FUCK");
 
 }
 
@@ -107,6 +106,4 @@ int main(){
 	test_get_url();
 	test_get_extension();
 	test_is_valid_ext();
-	
-	
 }
