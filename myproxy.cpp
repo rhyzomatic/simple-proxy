@@ -18,7 +18,7 @@
 #include "myproxy.h"
 #define CL(x,y) memset(x,y,sizeof(x))
 #define FUCK puts("FUCK");
-#define BUF_SIZE 500
+#define BUF_SIZE 2500
 
 using namespace std;
 
@@ -28,9 +28,9 @@ void error_handler(string error_string){
 }
 
 int send_all(int client_socket, unsigned char *buffer, int length){
-	char *current_ptr = (char*) buffer;
+	unsigned char *current_ptr = buffer;
 	while (length > 0){
-		int sent_char = send(client_socket, current_ptr, length, 0);
+		int sent_char = send(client_socket, current_ptr, length, MSG_NOSIGNAL);
 		if (sent_char < 0){
 			return -1;
 		}
@@ -42,7 +42,7 @@ int send_all(int client_socket, unsigned char *buffer, int length){
 
 
 int rec_all(int client_socket, unsigned char *payload, int length){
-	char *current_ptr = (char*) payload;
+	unsigned char *current_ptr = payload;
 	int len = 0;
 	while (length > 0){
 		int rec_char = recv(client_socket, current_ptr, length, 0);
@@ -69,7 +69,7 @@ string rec_header(int client_socket, size_t max_length = 2500){
 //		puts(payload);
 		ssize_t rec_char = recv(client_socket, current_ptr, 1, 0);
 		if (rec_char < 1){
-			printf("Error receiving any header.\n");
+			printf("[%d] Error receiving any header.\n", client_socket);
 			break;
 		}
 		else { // we know we got one byte
@@ -89,7 +89,7 @@ string rec_header(int client_socket, size_t max_length = 2500){
 	else {
 		puts("HEADER----");
 		puts(payload);
-		printf("Error receiving header.\n");
+		printf("[%d] Error receiving header.\n", client_socket);
 		return "";
 	}
 }
@@ -139,7 +139,7 @@ void parse_remote_header(int client_socket, int ext_conn_socket, string url, boo
 
 	unsigned char buf[BUF_SIZE];
 	while (content_length > 0){
-		printf("remain len %d\n",content_length);
+		printf("[%d] remain len %d\n",client_socket,content_length);
 		int rec_char = rec_all(ext_conn_socket, buf, min(content_length, BUF_SIZE));
 		if (rec_char < 1){
 			error_handler("Error: error recieving payload."); //TODO: make this so it doesn't crash
@@ -152,6 +152,7 @@ void parse_remote_header(int client_socket, int ext_conn_socket, string url, boo
 
 		content_length -= rec_char;
 	}
+	printf("[%d] done parsing remote content\n",client_socket);
 	if (cache) fclose(file);
 
 	// pass header and body along to client
@@ -161,6 +162,7 @@ void parse_remote_header(int client_socket, int ext_conn_socket, string url, boo
 
 
 void open_ext_conn(int client_socket, string &header, char *hostname, int port, int content_length, bool cache){
+	printf("[%d] opening ext conn\n", client_socket);
 	struct hostent* host;
 	host = gethostbyname(hostname);
 	struct sockaddr_in server_addr;
@@ -170,16 +172,18 @@ void open_ext_conn(int client_socket, string &header, char *hostname, int port, 
 	bcopy((char *) host -> h_addr, (char *) &server_addr.sin_addr.s_addr, host -> h_length);
 	int ext_conn_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
+	printf("[%d] before connect\n", client_socket);
 	int remote_socket = connect(ext_conn_socket, (struct sockaddr *) &server_addr, sizeof(server_addr));
 
+	printf("[%d] after connect\n", client_socket);
 	if (remote_socket < 0){
-		error_handler("Could not connect to remote server"); // maybe change this so it doesn't exit the program
+		printf("[%d] Could not connect to remote server", client_socket); // maybe change this so it doesn't exit the program
 	}
 	else {
-		cout << "Connected to remote\n";
+		printf("[%d] Connected to remote\n",client_socket);
 		char body [content_length];
 		CL(body,0);
-		rec_all(ext_conn_socket, (unsigned char *)body, content_length); // body now has the body of what the client is trying to send
+		rec_all(client_socket, (unsigned char *)body, content_length); // body now has the body of what the client is trying to send
 
 		//send header and then body to remote server
 		send_all(ext_conn_socket, (unsigned char *) header.c_str(), header.length());
@@ -188,6 +192,8 @@ void open_ext_conn(int client_socket, string &header, char *hostname, int port, 
 		// receive what the server sends
 		parse_remote_header(client_socket, ext_conn_socket, get_url(header), cache);
 	}
+	close(ext_conn_socket);
+	
 }
 
 pair<string,int> get_hostname_and_port(string &header){
@@ -211,7 +217,7 @@ pair<string,int> get_hostname_and_port(string &header){
 }
 
 void pass_along_request(int client_socket, string &header){
-	printf("would be passing it along\n");
+	printf("[%d] would be passing it along\n", client_socket);
 	//TODO: pass along
 }
 
@@ -279,17 +285,17 @@ void parse_client_header(int client_socket, string &header){
 		istringstream header_stream(header);
 
 		string address(header.substr(4, header.find(" ", 4)-4)); //TODO: check if this is legit... maybe first line doesn't necessarily have a space and the HTTP/1.1 or whatever
-		cout << address << "\n";
+		cout << "[" << client_socket << "] " << address << "\n";
 
 		
 		string IMS = get_IMS(header);
 
 		bool no_cache = get_cache(header);
 
-		cout << no_cache << "\n";
+		//cout << no_cache << "\n";
 
 		pair<string,int> host = get_hostname_and_port(header);
-		cout << host.first << " " << host.second << "\n";
+		//cout << host.first << " " << host.second << "\n";
 		int content_length = get_content_length(header);
 		if (true){ //TODO: cache condition
 			open_ext_conn(client_socket, header, (char *) host.first.c_str(), host.second, content_length, false);
@@ -301,17 +307,19 @@ void parse_client_header(int client_socket, string &header){
 
 void *connection_handler(void *client_socket_ptr){
 	int client_socket = *(int*) client_socket_ptr;
-	printf("Client connection accepted.\n");
+	printf("[%d] Client connection accepted.\n", client_socket);
 	int conn_status = 0;
 	while(conn_status == 0){ //TODO: redundant while?
 		string header = rec_header(client_socket);
-
-		parse_client_header(client_socket, header);
-
-		conn_status = -1;
+		if (header != ""){ 
+			parse_client_header(client_socket, header);
+		}else{
+		}
+			conn_status = -1;
 	}
 	close(client_socket);
-	printf("Client connection closed.\n");
+	printf("[%d] Client connection closed.\n", client_socket);
+	pthread_exit(NULL);
 	return 0;
 }
 
@@ -323,7 +331,7 @@ int main(int argc, char *argv[]){
 		perror("setsockopt");
 		exit(1);
 	}
-	int client_socket;
+	int clisd;
 	struct sockaddr_in server_addr;
 	struct sockaddr_in client_addr;
 	memset(&server_addr, 0, sizeof(server_addr));
@@ -339,14 +347,17 @@ int main(int argc, char *argv[]){
 		exit(0);
 	}
 	socklen_t client_addr_len = sizeof(client_addr);
-	while(client_socket = accept(server_socket, (struct sockaddr *) &client_addr, &client_addr_len)){
+	while(true){
+		clisd = accept(server_socket, (struct sockaddr *) &client_addr, &client_addr_len);
+		int *clisd_cpy = new int(clisd);
 		pthread_t new_thread;
-		void *new_socket = malloc(sizeof(int));
-		memcpy(new_socket, &client_socket, sizeof(int));
-		if (pthread_create(&new_thread, NULL, connection_handler, new_socket)){
+		if (pthread_create(&new_thread, NULL, connection_handler, (void *)clisd_cpy)){
 			perror("Could not spawn thread.\n");
 			return 1;
 		}
+		void *status;
+//		pthread_detach(new_thread);
+//		pthread_join(new_thread,&status);
 	}
 	close(server_socket);
 	return 0;
