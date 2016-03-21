@@ -129,19 +129,19 @@ void parse_remote_header(int client_socket, int ext_conn_socket, string url, boo
 		FILE *file = fopen(enc.c_str(), "w+");
 	}
 
-	char buf[BUF_SIZE];
-	char *current_ptr = (char*) payload;
-	while (length > 0){
-		int rec_char = recv(ext_conn_socket, current_ptr, length, 0);
+	unsigned char buf[BUF_SIZE];
+	while (content_length > 0){
+		int rec_char = recv(ext_conn_socket, buf, min(content_length, BUF_SIZE), 0);
 		if (rec_char < 1){
-			printf("Error: error recieving payload.\n");
-			return -1;
+			error_handler("Error: error recieving payload."); //TODO: make this so it doesn't crash
 		}
-		//send(...)
-		fwrite(header.c_str(), 1, header.length(), file);
+		send_all(client_socket, buf, rec_char); 
+		
+		if (cache){
+			fwrite(buf, 1, rec_char, file);
+		}
 
-		current_ptr += rec_char;
-		length -= rec_char;
+		content_length -= rec_char;
 	}
 
 	if (cache) fclose(file);
