@@ -18,7 +18,7 @@
 #include "myproxy.h"
 #define CL(x,y) memset(x,y,sizeof(x))
 #define FUCK puts("FUCK");
-#define BUF_SIZE 1000
+#define BUF_SIZE 500
 
 using namespace std;
 
@@ -41,8 +41,9 @@ int send_all(int client_socket, unsigned char *buffer, int length){
 }
 
 
-int rec_all(int client_socket, char *payload, int length){
+int rec_all(int client_socket, unsigned char *payload, int length){
 	char *current_ptr = (char*) payload;
+	int len = 0;
 	while (length > 0){
 		int rec_char = recv(client_socket, current_ptr, length, 0);
 		if (rec_char < 1){
@@ -50,25 +51,29 @@ int rec_all(int client_socket, char *payload, int length){
 			return -1;
 		}
 		current_ptr += rec_char;
+		len += rec_char;
 		length -= rec_char;
 	}
-	return 0;
+	return len;
 }
 
-string rec_header(int client_socket, size_t max_length = 1000){
+string rec_header(int client_socket, size_t max_length = 2500){
 	char payload [max_length];
 	CL(payload,0);
 
 	char *current_ptr = (char*) payload;
-//	int total_rec_length = 0;
+	int total_rec_length = 0;
 	bool good_header = false;
-	while (true){ //(total_rec_length < max_length){
+	while (total_rec_length < max_length){
+//		puts("WHAT WE HAVE NOW---");
+//		puts(payload);
 		ssize_t rec_char = recv(client_socket, current_ptr, 1, 0);
 		if (rec_char < 1){
-			printf("Error receiving any payload.\n");
+			printf("Error receiving any header.\n");
 			break;
 		}
 		else { // we know we got one byte
+			total_rec_length++;
 			current_ptr++;
 			if (strcmp(current_ptr - 4, "\r\n\r\n") == 0){
 				good_header = true;
@@ -82,6 +87,8 @@ string rec_header(int client_socket, size_t max_length = 1000){
 		return header;
 	}
 	else {
+		puts("HEADER----");
+		puts(payload);
 		printf("Error receiving header.\n");
 		return "";
 	}
@@ -122,16 +129,18 @@ void parse_remote_header(int client_socket, int ext_conn_socket, string url, boo
 	CL(body,0);
 	//rec_all(ext_conn_socket, body, content_length); // no more rec_all, we need buffer
 
+	send_all(client_socket, (unsigned char *) header.c_str(), header.length());
 	FILE *file = NULL;
 
 	if (cache) {
 		string enc = get_crypt(url);
-		FILE *file = fopen(enc.c_str(), "w+");
+		file = fopen(enc.c_str(), "w+");
 	}
 
 	unsigned char buf[BUF_SIZE];
 	while (content_length > 0){
-		int rec_char = recv(ext_conn_socket, buf, min(content_length, BUF_SIZE), 0);
+		printf("remain len %d\n",content_length);
+		int rec_char = rec_all(ext_conn_socket, buf, min(content_length, BUF_SIZE));
 		if (rec_char < 1){
 			error_handler("Error: error recieving payload."); //TODO: make this so it doesn't crash
 		}
@@ -143,11 +152,9 @@ void parse_remote_header(int client_socket, int ext_conn_socket, string url, boo
 
 		content_length -= rec_char;
 	}
-
 	if (cache) fclose(file);
 
 	// pass header and body along to client
-//	send_all(client_socket, (unsigned char *) header.c_str(), header.length());
 //	send_all(client_socket, (unsigned char *)body, content_length);
 }
 
@@ -172,7 +179,7 @@ void open_ext_conn(int client_socket, string &header, char *hostname, int port, 
 		cout << "Connected to remote\n";
 		char body [content_length];
 		CL(body,0);
-		rec_all(ext_conn_socket, body, content_length); // body now has the body of what the client is trying to send
+		rec_all(ext_conn_socket, (unsigned char *)body, content_length); // body now has the body of what the client is trying to send
 
 		//send header and then body to remote server
 		send_all(ext_conn_socket, (unsigned char *) header.c_str(), header.length());
@@ -213,7 +220,7 @@ string get_IMS(string &header){
 	string IMS;
 
 	if (IMS_location != string::npos){ //TODO: this is untested
-		IMS_location += 17; // length of If-Modified-Since string
+		IMS_location += 19; // length of If-Modified-Since string
 		IMS = header.substr(IMS_location, header.find("\r\n", IMS_location) - IMS_location);
 		cout << IMS_location << "\n";
 	}
@@ -238,7 +245,6 @@ bool get_cache(string &header){
 string get_url(string &header){
 	size_t space_ind = header.find(" ", 4);
 	string url = header.substr(4, space_ind - 4 + 1 - 1); // exclude ending space
-	cout << "hihi" << "\n";
 	return url;
 }
 
@@ -286,7 +292,7 @@ void parse_client_header(int client_socket, string &header){
 		cout << host.first << " " << host.second << "\n";
 		int content_length = get_content_length(header);
 		if (true){ //TODO: cache condition
-			open_ext_conn(client_socket, header, (char *) host.first.c_str(), host.second, content_length, true);
+			open_ext_conn(client_socket, header, (char *) host.first.c_str(), host.second, content_length, false);
 			//TODO: MUTEX
 		}
 

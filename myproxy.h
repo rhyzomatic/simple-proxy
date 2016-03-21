@@ -25,7 +25,7 @@
 
 void error_handler (std::string error_string);
 int send_all (int client_socket, unsigned char * buffer, int length);
-int rec_all (int client_socket, char * payload, int length);
+int rec_all (int client_socket, unsigned char * payload, int length);
 std::string rec_header (int client_socket, size_t max_length);
 int get_content_length (std::string header);
 void parse_remote_header (int client_socket, int ext_conn_socket, std::string url, bool cache);
