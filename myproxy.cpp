@@ -159,12 +159,39 @@ void parse_remote_header(int client_socket, int ext_conn_socket, string url, boo
 //	send_all(client_socket, (unsigned char *)body, content_length);
 }
 
+struct hostent *gethostname (char *host)
+{
+	struct hostent *hostbuf, *hp;
+	size_t hstbuflen;
+	char *tmphstbuf;
+	int res;
+	int herr;
+
+	hostbuf = (hostent*) malloc (sizeof (struct hostent));
+	hstbuflen = 1024;
+	tmphstbuf = (char*) malloc (hstbuflen);
+
+	while ((res = gethostbyname_r (host, hostbuf, tmphstbuf, hstbuflen,
+					&hp, &herr)) == ERANGE)
+	{
+		/* Enlarge the buffer.  */
+		hstbuflen *= 2;
+		tmphstbuf = (char*) realloc (tmphstbuf, hstbuflen);
+	}
+
+	free (tmphstbuf);
+	/*  Check for errors.  */
+	if (res || hp == NULL)
+		return NULL;
+	return hp;
+}
+
 
 
 void open_ext_conn(int client_socket, string &header, char *hostname, int port, int content_length, bool cache){
 	printf("[%d] opening ext conn\n", client_socket);
 	struct hostent* host;
-	host = gethostbyname(hostname);
+	host = gethostname(hostname);
 	struct sockaddr_in server_addr;
 	bzero((char *) &server_addr, sizeof(server_addr));
 	server_addr.sin_family = AF_INET;
@@ -284,7 +311,7 @@ void parse_client_header(int client_socket, string &header){
 	else {
 		istringstream header_stream(header);
 
-		string address(header.substr(4, header.find(" ", 4)-4)); //TODO: check if this is legit... maybe first line doesn't necessarily have a space and the HTTP/1.1 or whatever
+		string address(get_url(header)); //TODO: check if this is legit... maybe first line doesn't necessarily have a space and the HTTP/1.1 or whatever
 		cout << "[" << client_socket << "] " << address << "\n";
 
 		
