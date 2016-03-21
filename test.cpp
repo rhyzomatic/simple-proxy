@@ -66,34 +66,27 @@ void test_get_extension(){
 	assert( "html" == get_extension(str2));
 
 	string str3 = "GET http://www.cse.cuhk.edu.hk/~kychan4/index.js HTTP/1.1 200 OK\r\nDate: Sun, 18 Oct 2009 08:56:53 GMT\r\nServer: Apache/2.2.14 (Win32)\r\nLast-Modified: Sat, 20 Nov 2004 07:16:26 GMT\r\nAccept-Ranges: bytes\r\nContent-Length: 44\r\nConnection: close\r\nContent-Type: text/html\r\nX-Pad: avoid browser bug\r\n\r\n<html><body><h1>It works!</h1></body></html>";
-	assert( "html" == get_extension(str3));
+	assert( "js" == get_extension(str3));
+
+	string str4 = "GET http://www.cse.cuhk.edu.hk/~kychan4 HTTP/1.1 200 OK\r\nDate: Sun, 18 Oct 2009 08:56:53 GMT\r\nServer: Apache/2.2.14 (Win32)\r\nLast-Modified: Sat, 20 Nov 2004 07:16:26 GMT\r\nAccept-Ranges: bytes\r\nContent-Length: 44\r\nConnection: close\r\nContent-Type: text/html\r\nX-Pad: avoid browser bug\r\n\r\n<html><body><h1>It works!</h1></body></html>";
+	assert( "" == get_extension(str4));
 }
 
 void test_is_valid_ext(){
 	//js 
-	string str = "GET http://www.cse.cuhk.edu.hk/v7/javascripts/marquee_i.js HTTP/1.1 200 OK\r\nDate: Sun, 18 Oct 2009 08:56:53 GMT\r\nServer: Apache/2.2.14 (Win32)\r\nLast-Modified: Sat, 20 Nov 2004 07:16:26 GMT\r\nAccept-Ranges: bytes\r\nContent-Length: 44\r\nConnection: close\r\nContent-Type: text/html\r\nX-Pad: avoid browser bug\r\n\r\n<html><body><h1>It works!</h1></body></html>";
-	assert( false == is_valid_ext(str));
+	assert( false == is_valid_ext("js"));
 	//no extension
-	string str3 = "GET http://www.cse.cuhk.edu.hk/v7/javascripts/ HTTP/1.1 200 OK\r\nDate: Sun, 18 Oct 2009 08:56:53 GMT\r\nServer: Apache/2.2.14 (Win32)\r\nLast-Modified: Sat, 20 Nov 2004 07:16:26 GMT\r\nAccept-Ranges: bytes\r\nContent-Length: 44\r\nConnection: close\r\nContent-Type: text/html\r\nX-Pad: avoid browser bug\r\n\r\n<html><body><h1>It works!</h1></body></html>";
-	assert( false == is_valid_ext(str3));
-	//kychan4 no extension
-	string str5 = "GET http://www.cse.cuhk.edu.hk/~kychan4 HTTP/1.1 200 OK\r\nDate: Sun, 18 Oct 2009 08:56:53 GMT\r\nServer: Apache/2.2.14 (Win32)\r\nLast-Modified: Sat, 20 Nov 2004 07:16:26 GMT\r\nAccept-Ranges: bytes\r\nContent-Length: 44\r\nConnection: close\r\nContent-Type: text/html\r\nX-Pad: avoid browser bug\r\n\r\n<html><body><h1>It works!</h1></body></html>";
-	assert( false == is_valid_ext(str5));
+	assert( false == is_valid_ext(""));
 	//jpg
-	string str6 = "GET http://www.cse.cuhk.edu.hk/~kychan4/index.jpg HTTP/1.1 200 OK\r\nDate: Sun, 18 Oct 2009 08:56:53 GMT\r\nServer: Apache/2.2.14 (Win32)\r\nLast-Modified: Sat, 20 Nov 2004 07:16:26 GMT\r\nAccept-Ranges: bytes\r\nContent-Length: 44\r\nConnection: close\r\nContent-Type: text/html\r\nX-Pad: avoid browser bug\r\n\r\n<html><body><h1>It works!</h1></body></html>";
-	assert( true == is_valid_ext(str6));
+	assert( true == is_valid_ext("jpg"));
 	//gif
-	string str7 = "GET http://www.cse.cuhk.edu.hk/~kychan4/index.gif HTTP/1.1 200 OK\r\nDate: Sun, 18 Oct 2009 08:56:53 GMT\r\nServer: Apache/2.2.14 (Win32)\r\nLast-Modified: Sat, 20 Nov 2004 07:16:26 GMT\r\nAccept-Ranges: bytes\r\nContent-Length: 44\r\nConnection: close\r\nContent-Type: text/html\r\nX-Pad: avoid browser bug\r\n\r\n<html><body><h1>It works!</h1></body></html>";
-	assert( true == is_valid_ext(str7));
+	assert( true == is_valid_ext("gif"));
 	//txt
-	string str8 = "GET http://www.cse.cuhk.edu.hk/~kychan4/index.txt HTTP/1.1 200 OK\r\nDate: Sun, 18 Oct 2009 08:56:53 GMT\r\nServer: Apache/2.2.14 (Win32)\r\nLast-Modified: Sat, 20 Nov 2004 07:16:26 GMT\r\nAccept-Ranges: bytes\r\nContent-Length: 44\r\nConnection: close\r\nContent-Type: text/html\r\nX-Pad: avoid browser bug\r\n\r\n<html><body><h1>It works!</h1></body></html>";
-	assert( true == is_valid_ext(str8));
+	assert( true == is_valid_ext("txt"));
 	//pdf 
-	string str2 = "GET http://www.cse.cuhk.edu.hk/v7/javascripts/marquee_i.pdf HTTP/1.1 200 OK\r\nDate: Sun, 18 Oct 2009 08:56:53 GMT\r\nServer: Apache/2.2.14 (Win32)\r\nLast-Modified: Sat, 20 Nov 2004 07:16:26 GMT\r\nAccept-Ranges: bytes\r\nContent-Length: 44\r\nConnection: close\r\nContent-Type: text/html\r\nX-Pad: avoid browser bug\r\n\r\n<html><body><h1>It works!</h1></body></html>";
-	assert( true == is_valid_ext(str2));
+	assert( true == is_valid_ext("pdf"));
 	//html
-	string str4 = "GET http://www.cse.cuhk.edu.hk/~kychan4/index.html HTTP/1.1 200 OK\r\nDate: Sun, 18 Oct 2009 08:56:53 GMT\r\nServer: Apache/2.2.14 (Win32)\r\nLast-Modified: Sat, 20 Nov 2004 07:16:26 GMT\r\nAccept-Ranges: bytes\r\nContent-Length: 44\r\nConnection: close\r\nContent-Type: text/html\r\nX-Pad: avoid browser bug\r\n\r\n<html><body><h1>It works!</h1></body></html>";
-	assert( true == is_valid_ext(str4));
+	assert( true == is_valid_ext("html"));
 
 }
 
