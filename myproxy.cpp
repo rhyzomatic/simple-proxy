@@ -227,7 +227,8 @@ string get_extension(string &header){
 	size_t bs_ind = url.find_last_of("/");
 	string ext;
 	if (bs_ind != string::npos && dot_ind > bs_ind && dot_ind != string::npos){
-		ext = url.substr(bs_ind + 1);
+		ext = url.substr(dot_ind + 1);
+	//	cout<<ext<<endl;
 	}
 	return ext;
 }
