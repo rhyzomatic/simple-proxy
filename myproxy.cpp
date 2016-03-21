@@ -120,6 +120,8 @@ string get_crypt(string url){
 }
 
 void parse_remote_header(int client_socket, int ext_conn_socket, string url, bool cache){
+	//TODO:proxy-server connection option
+
 	// grab the header from the remote server
 	string header = rec_header(ext_conn_socket);
 	int content_length = get_content_length(header);
@@ -131,7 +133,7 @@ void parse_remote_header(int client_socket, int ext_conn_socket, string url, boo
 
 	send_all(client_socket, (unsigned char *) header.c_str(), header.length());
 	FILE *file = NULL;
-
+//TODO:MUTEX
 	if (cache) {
 		string enc = get_crypt(url);
 		file = fopen(enc.c_str(), "w+");
