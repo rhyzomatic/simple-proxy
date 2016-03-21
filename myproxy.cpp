@@ -182,6 +182,7 @@ string get_IMS(string &header){
 		IMS = header.substr(IMS_location, header.find("\r\n", IMS_location) - IMS_location);
 		cout << IMS_location << "\n";
 	}
+	cout << IMS << "\n";
 	return IMS;
 }
 
@@ -196,6 +197,32 @@ bool get_cache(string &header){
 		}
 	}
 	return no_cache;
+}
+
+string get_url(string &header){
+	size_t space_ind = header.find(" ", 4);
+	string url = header.substr(4, space_ind - 4 + 1 - 1); // exclude ending space
+	return url;
+}
+
+string get_extension(string &header){
+	string url = get_url(header);
+	size_t dot_ind = url.find_last_of(".");
+	size_t bs_ind = url.find_last_of("/");
+	string ext;
+	if (bs_ind != string::npos && dot_ind > bs_ind && dot_ind != string::npos){
+		ext = url.substr(bs_ind + 1);
+	}
+	return ext;
+}
+
+bool is_valid_ext(string ext){
+	transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+	string exts[] = {"html", "pdf"};
+	for (int i=0,len=sizeof(exts)/sizeof(exts[0]);i<len;i++){
+		if (exts[i]==ext) return true;
+	}
+	return false;
 }
 
 void parse_client_header(int client_socket, string &header){
