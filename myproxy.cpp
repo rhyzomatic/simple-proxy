@@ -196,12 +196,14 @@ bool get_cache(string &header){
 			no_cache = true;
 		}
 	}
+	
 	return no_cache;
 }
 
 string get_url(string &header){
 	size_t space_ind = header.find(" ", 4);
 	string url = header.substr(4, space_ind - 4 + 1 - 1); // exclude ending space
+	cout << "hihi" << "\n";
 	return url;
 }
 
@@ -218,7 +220,7 @@ string get_extension(string &header){
 
 bool is_valid_ext(string ext){
 	transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
-	string exts[] = {"html", "pdf"};
+	string exts[] = {"html", "pdf" ,"jpg", "gif","txt"};
 	for (int i=0,len=sizeof(exts)/sizeof(exts[0]);i<len;i++){
 		if (exts[i]==ext) return true;
 	}
