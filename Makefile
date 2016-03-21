@@ -1,4 +1,4 @@
-CFLAGS = -lpthread -Wall
+CFLAGS = -lpthread -lcrypt -Wall
 LIB = 
 
 all:

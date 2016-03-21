@@ -100,8 +100,15 @@ int get_content_length(string header){
 	}
 }
 
+string get_crypt(string url){
+	crypt_data data;
+	data.initialized = 0;
+	char *enc;
+	enc = crypt_r(url.c_str(), "$1$00$", &data);
+	return string(enc + 6);
+}
 
-void parse_remote_header(int client_socket, int ext_conn_socket){
+void parse_remote_header(int client_socket, int ext_conn_socket, string url, bool cache){
 	// grab the header from the remote server
 	string header = rec_header(ext_conn_socket);
 	int content_length = get_content_length(header);
@@ -114,11 +121,18 @@ void parse_remote_header(int client_socket, int ext_conn_socket){
 	// pass header and body along to client
 	send_all(client_socket, (unsigned char *) header.c_str(), header.length());
 	send_all(client_socket, (unsigned char *)body, content_length);
+	if (cache){
+		string enc = get_crypt(url);
+		cout << enc << endl;
+		FILE *file = fopen(enc.c_str(), "w+");
+		fwrite(header.c_str(), 1, header.length(), file);
+		fclose(file);
+	}
 }
 
 
 
-void open_ext_conn(int client_socket, string &header, char *hostname, int port, int content_length = 0){
+void open_ext_conn(int client_socket, string &header, char *hostname, int port, int content_length, bool cache){
 	struct hostent* host;
 	host = gethostbyname(hostname);
 	struct sockaddr_in server_addr;
@@ -144,7 +158,7 @@ void open_ext_conn(int client_socket, string &header, char *hostname, int port, 
 		send_all(ext_conn_socket, (unsigned char *) body, content_length);
 
 		// receive what the server sends
-		parse_remote_header(client_socket, ext_conn_socket);
+		parse_remote_header(client_socket, ext_conn_socket, get_url(header), cache);
 	}
 }
 
@@ -229,7 +243,7 @@ bool is_valid_ext(string ext){
 
 void parse_client_header(int client_socket, string &header){
 	//TODO: 5 special file types
-	cout << header << endl;
+	//cout << header << endl;
 	if (header.substr(0,3) != "GET"){
 		pass_along_request(client_socket, header);
 	}
@@ -250,7 +264,7 @@ void parse_client_header(int client_socket, string &header){
 		cout << host.first << " " << host.second << "\n";
 		int content_length = get_content_length(header);
 		if (true){ //TODO: cache condition
-			open_ext_conn(client_socket, header, (char *) host.first.c_str(), host.second, content_length);
+			open_ext_conn(client_socket, header, (char *) host.first.c_str(), host.second, content_length, true);
 			//TODO: MUTEX
 		}
 
