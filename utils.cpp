@@ -214,3 +214,26 @@ bool is_valid_ext (string ext){
 	return false;
 }
 
+time_t cache_LM(string url){
+	struct stat buf;
+	time_t LMT;
+	string filename = get_crypt(url);
+	if((stat((CACHE_DIR+filename).c_str(),&buf))!=0){
+		if(errno != ENOENT){
+			perror("Error");
+		}else{
+			//Cache not exists
+		}
+	}else{
+		memcpy(&(LMT),&buf.st_mtime,sizeof(time_t));
+	}
+	return LMT;
+}
+
+time_t str_to_time(string time){
+	struct tm buf;
+	time_t IMS;
+	strptime(time.c_str(), "%a, %d %b %Y %H:%M:%S GMT", &buf);
+	IMS = mktime(&buf);
+	return IMS;
+}
