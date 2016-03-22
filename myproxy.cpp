@@ -75,41 +75,112 @@ void parse_remote_header(int client_socket, int ext_conn_socket, string url, boo
 	string header = rec_header(ext_conn_socket);
 	int content_length = get_content_length(header);
 
-	// recieve the body from remote
-	char body [content_length];
-	CL(body,0);
-	//rec_all(ext_conn_socket, body, content_length); // no more rec_all, we need buffer
+  if (is_using_chunked_encoding(header)){ // for chunked
+    cout << "They're using!!!!!!!!!\n";
 
-	send_all(client_socket, (unsigned char *) header.c_str(), header.length());
-	FILE *file = NULL;
-	if (cache) {
-		string enc = get_crypt(url);
-		file = fopen((CACHE_DIR + enc).c_str(), "w+");
-		flock(fileno(file), LOCK_EX);
-		fwrite(header.c_str(), 1, header.length(), file);
+    FILE *file = NULL;
+    if (cache) {
+      string enc = get_crypt(url);
+      file = fopen((CACHE_DIR + enc).c_str(), "w+");
+      flock(fileno(file), LOCK_EX);
+      fwrite(header.c_str(), 1, header.length(), file);
+    }
+    int chunk_length = 1; // just has to greater than 0 for the while, holds the last rec'ed chunk size
+    unsigned char trash [2]; // used as a throwaway buffer
 
-	}
+    while (chunk_length > 0){
+      char hec_buf [1];
+      int total_rec_length = 0;
+      string hex_str = "";
+      while (true){
+        int rec_char = recv(ext_conn_socket, hec_buf, 1, 0);
+        if (rec_char < 1){
+          error_handler("Error in receiving chunked");
+        }
 
-	unsigned char buf[BUF_SIZE];
-	while (content_length > 0){
-		printf("[%d] remain len %d\n",client_socket,content_length);
-		int rec_char = rec_all(ext_conn_socket, buf, min(content_length, BUF_SIZE));
-		if (rec_char < 1){
-			error_handler("Error: error recieving payload."); //TODO: make this so it doesn't crash
-		}
-		send_all(client_socket, buf, rec_char); 
-		
-		if (cache){
-			fwrite(buf, 1, rec_char, file);
-		}
+        hex_str += hec_buf;
 
-		content_length -= rec_char;
-	}
-	printf("[%d] done parsing remote content\n",client_socket);
-	if (cache) fclose(file);
+        total_rec_length++;
 
-	// pass header and body along to client
-//	send_all(client_socket, (unsigned char *)body, content_length);
+        if ((hex_str.length() > 2) and (hex_str.substr(hex_str.length()-2, 2) == "\r\n")){
+          cout << "Here's the hex: " << hex_str;
+          break;
+        }
+
+
+        if (total_rec_length > 100){ // assuming the length of the hex won't be longer than 100 chars
+          error_handler("Hex failed");
+        }
+      }
+
+      int content_length;
+      stringstream ss;
+      ss << hex << hex_str;
+      ss >> content_length; // content_length now holds the length of the chunk
+
+      chunk_length = content_length;
+
+      unsigned char buf[BUF_SIZE];
+      while (content_length > 0){
+        printf("[%d] remain len %d\n",client_socket,content_length);
+        int rec_char = rec_all(ext_conn_socket, buf, min(content_length, BUF_SIZE));
+        if (rec_char < 1){
+          error_handler("Error: error recieving payload."); //TODO: make this so it doesn't crash
+        }
+        send_all(client_socket, buf, rec_char); 
+        
+        if (cache){
+          fwrite(buf, 1, rec_char, file);
+        }
+
+        content_length -= rec_char;
+      }
+
+      rec_all(ext_conn_socket, trash, 2); //this is for the extra "\r\n" at the end 
+    }
+
+    printf("[%d] done parsing remote content\n",client_socket);
+    if (cache) fclose(file);
+  }
+
+  else {
+
+    // recieve the body from remote
+    char body [content_length];
+    CL(body,0);
+    //rec_all(ext_conn_socket, body, content_length); // no more rec_all, we need buffer
+
+    send_all(client_socket, (unsigned char *) header.c_str(), header.length());
+    FILE *file = NULL;
+    if (cache) {
+      string enc = get_crypt(url);
+      file = fopen((CACHE_DIR + enc).c_str(), "w+");
+      flock(fileno(file), LOCK_EX);
+      fwrite(header.c_str(), 1, header.length(), file);
+
+    }
+
+    unsigned char buf[BUF_SIZE];
+    while (content_length > 0){
+      printf("[%d] remain len %d\n",client_socket,content_length);
+      int rec_char = rec_all(ext_conn_socket, buf, min(content_length, BUF_SIZE));
+      if (rec_char < 1){
+        error_handler("Error: error recieving payload."); //TODO: make this so it doesn't crash
+      }
+      send_all(client_socket, buf, rec_char); 
+      
+      if (cache){
+        fwrite(buf, 1, rec_char, file);
+      }
+
+      content_length -= rec_char;
+    }
+    printf("[%d] done parsing remote content\n",client_socket);
+    if (cache) fclose(file);
+  }
+
+    // pass header and body along to client
+  //	send_all(client_socket, (unsigned char *)body, content_length);
 }
 
 struct hostent *gethostname (char *host)

@@ -214,3 +214,14 @@ bool is_valid_ext (string ext){
 	return false;
 }
 
+bool is_using_chunked_encoding(string header){
+  size_t chunked_ind = header.find("Transfer-Encoding: ");
+  chunked_ind += 19;
+  if (header.substr(chunked_ind, 7) == "chunked"){
+    return true;
+  }
+  else {
+    cout << "Dat nasty chunked: " << header.substr(chunked_ind, 20) << "\n";
+    return false;
+  }
+}
