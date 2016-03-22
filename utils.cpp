@@ -97,6 +97,33 @@ void send_cache (int client_socket, string url){
 	fclose(file);
 }
 
+struct hostent *gethostname (char *host)
+{
+	struct hostent *hostbuf, *hp;
+	size_t hstbuflen;
+	char *tmphstbuf;
+	int res;
+	int herr;
+
+	hostbuf = (hostent*) malloc (sizeof (struct hostent));
+	hstbuflen = 1024;
+	tmphstbuf = (char*) malloc (hstbuflen);
+
+	while ((res = gethostbyname_r (host, hostbuf, tmphstbuf, hstbuflen,
+					&hp, &herr)) == ERANGE)
+	{
+		/* Enlarge the buffer.  */
+		hstbuflen *= 2;
+		tmphstbuf = (char*) realloc (tmphstbuf, hstbuflen);
+	}
+
+	free (tmphstbuf);
+	/*  Check for errors.  */
+	if (res || hp == NULL)
+		return NULL;
+	return hp;
+}
+
 pair <string,int> get_hostname_and_port (string & header){
 	size_t hostname_location = header.find("Host: ");
 	if (hostname_location == string::npos){
@@ -146,15 +173,15 @@ string get_LM (string & header){
 }
 
 
-string replace_IMS (string header){
-	string test ="Wed, 19 Oct 2005 10:50:00 GMT";
+string replace_IMS (string header, string new_IMS){
+	
 	int ims_ind = header.find("If-Modified-Since: ");
 
 	if(ims_ind != string::npos){
 		int crlf_ind = header.find("\r\n",ims_ind);
-		header.replace(ims_ind, crlf_ind-ims_ind+1-1, "If-Modified-Since: " + test);
+		header.replace(ims_ind, crlf_ind-ims_ind+1-1, "If-Modified-Since: "+ new_IMS);
 	}else{
-		header.insert(header.find("\r\n"),"\r\nIf-Modified-Since: "+ test);
+		header.insert(header.find("\r\n"),"\r\nIf-Modified-Since: " + new_IMS);
 	}
 
 	cout << header << endl;
