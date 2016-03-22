@@ -214,7 +214,7 @@ int get_status_code (string header){
 	string length_str(header.substr(status_location,3));
 	int status;
 	stringstream(length_str) >> status;
-	cout << status << "\n";
+//	cout << status << "\n";
 	return status;
 	
 }
