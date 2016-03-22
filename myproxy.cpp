@@ -352,12 +352,6 @@ void *connection_handler(void *client_socket_ptr){
 
 #ifndef TEST
 int main(int argc, char *argv[]){
-  int x;
-  stringstream ss;
-  ss << hex << "ffff\r\n";
-  ss >> x;
-  printf("%d\n", x);
-
 	struct stat st = {0};
 
 	if (stat("cache", &st) == -1) {
