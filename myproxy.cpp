@@ -200,7 +200,6 @@ void parse_client_header(int client_socket, string &header){
 				}
 
 			} else if (IMS == "" && no_cache){ // case iii
-				//TODO: insert header IMS
 				/*
 				   No If-Modified-Since and with Cache-Control: no-cache. MYPROXY will
 				   forward the request to the web server. It will also insert the If-Modified-Since header to the
