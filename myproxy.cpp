@@ -36,8 +36,7 @@ string rec_header(int client_socket, size_t max_length = 2500){
 		if (rec_char < 1){
 			printf("[%d] Error receiving any header.\n", client_socket);
 			break;
-		}
-		else { // we know we got one byte
+		} else { // we know we got one byte
 			total_rec_length++;
 			current_ptr++;
 			if (strcmp(current_ptr - 4, "\r\n\r\n") == 0){
@@ -50,8 +49,7 @@ string rec_header(int client_socket, size_t max_length = 2500){
 	if (good_header){
 		string header(payload);
 		return header;
-	}
-	else {
+	} else {
 		puts("HEADER----");
 		puts(payload);
 		printf("[%d] Error receiving header.\n", client_socket);
@@ -147,8 +145,7 @@ void open_ext_conn(int client_socket, string &header, char *hostname, int port, 
 	printf("[%d] after connect\n", client_socket);
 	if (remote_socket < 0){
 		printf("[%d] Could not connect to remote server", client_socket); // maybe change this so it doesn't exit the program
-	}
-	else {
+	} else {
 		printf("[%d] Connected to remote\n",client_socket);
 		char body [content_length];
 		CL(body,0);
@@ -176,8 +173,7 @@ void parse_client_header(int client_socket, string &header){
 	//cout << header << endl;
 	if (header.substr(0,3) != "GET"){
 		pass_along_request(client_socket, header);
-	}
-	else {
+	} else {
 		istringstream header_stream(header);
 
 		string address(get_url(header)); //TODO: check if this is legit... maybe first line doesn't necessarily have a space and the HTTP/1.1 or whatever
@@ -204,7 +200,7 @@ void parse_client_header(int client_socket, string &header){
 			printf("[%d] Cache exist, sending cache\n", client_socket);
 			if (IMS == "" && !no_cache){ //case i
 				send_cache(client_socket, url);
-			}else if (IMS != "" && !no_cache){ //case ii
+			} else if (IMS != "" && !no_cache){ //case ii
 				/*
 				   MYPROXY checks if the IMS
 				   time is later than the last modified time of the cached web object (see the hints below for how to
@@ -219,7 +215,7 @@ void parse_client_header(int client_socket, string &header){
 					send_cache(client_socket, url);
 				}
 
-			}else if (IMS == "" && no_cache){ // case iii
+			} else if (IMS == "" && no_cache){ // case iii
 				//TODO: insert header IMS
 				/*
 				   No If-Modified-Since and with Cache-Control: no-cache. MYPROXY will
@@ -243,7 +239,7 @@ void parse_client_header(int client_socket, string &header){
 
 			}
 
-		}else{ // NOPE, cache does not exist SOSAD
+		} else { // NOPE, cache does not exist SOSAD
 			open_ext_conn(client_socket, header, (char *) host.first.c_str(), host.second, content_length, will_cache);
 		}
 
@@ -258,7 +254,7 @@ void *connection_handler(void *client_socket_ptr){
 		string header = rec_header(client_socket);
 		if (header != ""){ 
 			parse_client_header(client_socket, header);
-		}else{
+		} else {
 			conn_status = -1;
 		}
 	}
