@@ -55,6 +55,22 @@ string rec_header(int client_socket, size_t max_length = 2500){
 	}
 }
 
+int get_n_send_chunk_len(int client_socket, int ext_conn_socket){
+	unsigned char buf[BUF_SIZE];
+	CL(buf,0);
+	unsigned char *ptr = buf;
+	while (true){	
+		int rec_char = recv(ext_conn_socket, (unsigned char*)ptr, 1, 0);
+		if (rec_char < 1) error_handler("get chunk len fked up");
+		ptr++;
+		if (ptr - buf > 2 && strcmp((char *)ptr-2,"\r\n")==0) break;
+	}
+	send_all(client_socket, buf, ptr-buf);
+	int len;
+	sscanf((char *)buf, "%x", &len);
+	return len;
+}
+
 void parse_remote_header(int client_socket, int ext_conn_socket, string url, bool cache, bool need_obj){
 
 
@@ -84,7 +100,24 @@ void parse_remote_header(int client_socket, int ext_conn_socket, string url, boo
   if (is_using_chunked_encoding(header)){ // for chunked
     cout << "They're using chunked encoding\n";
 
-    int last_chunk_length = 1; // just has to greater than 0 for the while, holds the last rec'ed chunk size
+	int chunk_len;
+	unsigned char buf[BUF_SIZE];
+	while (chunk_len = get_n_send_chunk_len(client_socket,ext_conn_socket)) {
+		printf("[%d] CHUNK LEN=%d\n",client_socket, chunk_len);
+		while (chunk_len > 0){
+			int size = min(chunk_len, BUF_SIZE);
+			rec_all(ext_conn_socket, buf, size);
+			send_all(client_socket, buf, size);
+			chunk_len -= size;
+			FUCK;
+		}
+		rec_all(ext_conn_socket, buf, 2); // get the last \r\n
+		send_all(client_socket, (unsigned char *)"\r\n", 2);
+	}
+	rec_all(ext_conn_socket, buf, 2); // get the last \r\n
+	send_all(client_socket, (unsigned char *)"\r\n", 2);
+
+    /*int last_chunk_length = 1; // just has to greater than 0 for the while, holds the last rec'ed chunk size
     unsigned char trash [2]; // used as a throwaway buffer
 
     while (last_chunk_length > 0){
@@ -141,7 +174,7 @@ void parse_remote_header(int client_socket, int ext_conn_socket, string url, boo
     }
 
     printf("[%d] done parsing remote content\n",client_socket);
-    if (cache) fclose(file);
+    if (cache) fclose(file);*/
   }
 
   else {
