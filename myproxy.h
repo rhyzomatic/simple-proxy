@@ -39,6 +39,8 @@ void * connection_handler (void * client_socket_ptr);
 std::string get_url(std::string &header);
 std::string get_extension(std::string &header);
 bool is_valid_ext(std::string ext);
+std::string get_LM (std::string & header);
+bool change_IMS(std::string &header);
 
 
 #endif
