@@ -82,7 +82,6 @@ void parse_remote_header(int client_socket, int ext_conn_socket, string url, boo
 
 	send_all(client_socket, (unsigned char *) header.c_str(), header.length());
 	FILE *file = NULL;
-//TODO:MUTEX
 	if (cache) {
 		string enc = get_crypt(url);
 		file = fopen((CACHE_DIR + enc).c_str(), "w+");
@@ -206,12 +205,40 @@ void parse_client_header(int client_socket, string &header){
 		//cout << host.first << " " << host.second << "\n";
 		int content_length = get_content_length(header);
 
-		bool will_cache = true;
-		if (true){ //TODO: cache condition
-			//TODO: MUTEX
+		string url = get_url(header);
+
+		bool will_cache = is_valid_ext(get_extension(header));
+
+		if (cache_exist(url)){ // cache exists YAY
+
+			printf("[%d] Cache exist, sending cache\n", client_socket);
+			if (IMS == "" && !no_cache){ //case i
+				send_cache(client_socket, url);
+			}else if (IMS != "" && !no_cache){ //case ii
+				/*
+				   MYPROXY checks if the IMS
+				   time is later than the last modified time of the cached web object (see the hints below for how to
+				   obtain the last modified time). If yes, MYPROXY returns a 304 (not modified) response to the
+				   client; else it returns the cached object to the client.
+				 */
+
+			}else if (IMS == "" && no_cache){ // case iii
+				//TODO: insert header IMS
+
+			} else { // case iv
+				/*
+				   With If-Modified-Since and with Cache-Control: no-cache. MYPROXY will
+				   also forward the request to the web server. However, if the last modified time of the cached web
+				   object is after the IMS time, then the IMS time will be overwritten with the last modified time of
+				   the cached web object.
+				 */
+			}
+
+		}else{ // NOPE, cache does not exist SOSAD
+			open_ext_conn(client_socket, header, (char *) host.first.c_str(), host.second, content_length, will_cache);
 		}
 
-		string url = get_url(header);
+
 		if (cache_exist(url)){//TODO:FIX THIS
 			printf("[%d] Cache exist, sending cache\n", client_socket);
 			send_cache(client_socket, url);
