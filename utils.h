@@ -21,6 +21,10 @@
 #include <arpa/inet.h>
 #include <crypt.h>
 #include <algorithm>
+#define CL(x,y) memset(x,y,sizeof(x))
+#define FUCK puts("FUCK");
+#define BUF_SIZE 4096
+#define CACHE_DIR "cache/"
 
 void error_handler (std::string error_string);
 int send_all (int client_socket, unsigned char * buffer, int length);
@@ -29,7 +33,7 @@ int get_content_length (std::string header);
 std::string get_crypt (std::string & url);
 bool cache_exist (std::string & url);
 void send_cache (int client_socket, std::string url);
-std::pair <string,int> get_hostname_and_port (std::string & header);
+std::pair <std::string,int> get_hostname_and_port (std::string & header);
 std::string get_IMS (std::string & header);
 std::string get_LM (std::string & header);
 bool change_IMS (std::string & header);

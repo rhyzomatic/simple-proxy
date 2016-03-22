@@ -17,11 +17,8 @@
 #include <crypt.h>
 #include <algorithm>
 #include "myproxy.h"
+#include "utils.h"
 #include <sys/file.h>
-#define CL(x,y) memset(x,y,sizeof(x))
-#define FUCK puts("FUCK");
-#define BUF_SIZE 4096
-#define CACHE_DIR "cache/"
 
 
 using namespace std;

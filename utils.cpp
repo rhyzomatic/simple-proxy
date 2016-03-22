@@ -20,10 +20,6 @@
 #include <algorithm>
 #include <sys/file.h>
 #include "utils.h"
-#define CL(x,y) memset(x,y,sizeof(x))
-#define FUCK puts("FUCK");
-#define BUF_SIZE 4096
-#define CACHE_DIR "cache/"
 
 using namespace std;
 
