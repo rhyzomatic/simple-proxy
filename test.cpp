@@ -20,7 +20,7 @@ void test_get_cache(){
 	string str3 = "HTTP/1.1 200 OK\r\nDate: Sun, 18 Oct 2009 08:56:53 GMT\r\nServer: Apache/2.2.14 (Win32)\r\nLast-Modified: Sat, 20 Nov 2004 07:16:26 GMT\r\nAccept-Ranges: bytes\r\nCache-Control: no-cache\r\nContent-Type: text/html\r\nX-Pad: avoid browser bug\r\n\r\n<html><body><h1>It works!</h1></body></html>";
 	assert(true==get_cache(str3)); 
 
-	string str4 = "HTTP/1.1 200 OK\r\nDate: Sun, 18 Oct 2009 08:56:53 GMT\r\nServer: Apache/2.2.14 (Win32)\r\nLast-Modified: Sat, 20 Nov 2004 07:16:26 GMT\r\nAccept-Ranges: bytes\r\nCache-Control: max-age=0, no-cache\r\nContent-Type: text/html\r\nX-Pad: avoid browser bug\r\n\r\n<html><body><h1>It works!</h1></body></html>";
+	string str4 = "HTTP/1.1 200 OK\r\nDate: Sun, 18 Oct 2009 08:56:53 GMT\r\nServer: Apache/2.2.14 (Win32)\r\nLast-Modified: Sat, 20 Nov 2004 07:16:26 GMT\r\nAccept-Ranges: bytes\r\nCache-Control: max-age=0, max-age=1, no-cache\r\nContent-Type: text/html\r\nX-Pad: avoid browser bug\r\n\r\n<html><body><h1>It works!</h1></body></html>";
 	assert(true==get_cache(str4));
 
 	string str6 = "HTTP/1.1 200 OK\r\nDate: Sun, 18 Oct 2009 08:56:53 GMT\r\nServer: Apache/2.2.14 (Win32)\r\nLast-Modified: Sat, 20 Nov 2004 07:16:26 GMT\r\nAccept-Ranges: bytes\r\nCache-Control: max-age=0\r\nContent-Type: text/html\r\nX-Pad: avoid browser bug\r\n\r\n<html><body><h1>It works!</h1></body></html>";
@@ -32,20 +32,21 @@ void test_get_cache(){
 
 
 void test_get_IMS(){
-	//should be ==?
+	
 	string str4 = "HTTP/1.1 200 OK\r\nServer: Apache/2.2.14 (Win32)\r\nIf-Modified-Since: Wed, 19 Oct 2005 10:50:00 GMT\r\nAccept-Ranges: bytes\r\nCache-control: no-cache\r\nContent-Type: text/html\r\nX-Pad: avoid browser bug\r\n\r\n<html><body><h1>It works!</h1></body></html>";
 	assert( "Wed, 19 Oct 2005 10:50:00 GMT" == get_IMS(str4)); 
 
 	string str5 = "HTTP/1.1 200 OK\r\nServer: Apache/2.2.14 (Win32)\r\nIf-Modified-Since: Sat, 29 Oct 1994 19:43:31 GMT\r\nAccept-Ranges: bytes\r\nCache-control: no-cache\r\nContent-Type: text/html\r\nX-Pad: avoid browser bug\r\n\r\n<html><body><h1>It works!</h1></body></html>";
 	assert( "Sat, 29 Oct 1994 19:43:31 GMT" == get_IMS(str5));
 
+	//no IMS
 	string str6 = "HTTP/1.1 200 OK\r\nServer: Apache/2.2.14 (Win32)\r\nAccept-Ranges: bytes\r\nCache-control: no-cache\r\nContent-Type: text/html\r\nX-Pad: avoid browser bug\r\n\r\n<html><body><h1>It works!</h1></body></html>";
 	assert( "" == get_IMS(str6)); 
 
 }
 
 void test_get_LM(){
-	//should be ==?
+
 	string str4 = "HTTP/1.1 200 OK\r\nServer: Apache/2.2.14 (Win32)\r\nIf-Modified-Since: Wed, 19 Oct 2005 10:50:00 GMT\r\nLast-Modified: Wed, 19 Oct 2005 10:50:00 GMT\r\nAccept-Ranges: bytes\r\nCache-control: no-cache\r\nContent-Type: text/html\r\nX-Pad: avoid browser bug\r\n\r\n<html><body><h1>It works!</h1></body></html>";
 	assert( "Wed, 19 Oct 2005 10:50:00 GMT" == get_LM(str4)); 
 
@@ -55,7 +56,7 @@ void test_get_LM(){
 }
 
 void test_change_IMS(){
-	//should be ==?
+	
 	string str4 = "HTTP/1.1 200 OK\r\nServer: Apache/2.2.14 (Win32)\r\nIf-Modified-Since: Wed, 19 Oct 2005 10:50:00 GMT\r\nLast-Modified: Wed, 19 Oct 2005 10:50:00 GMT\r\nAccept-Ranges: bytes\r\nCache-control: no-cache\r\nContent-Type: text/html\r\nX-Pad: avoid browser bug\r\n\r\n<html><body><h1>It works!</h1></body></html>";
 	assert( false == change_IMS(str4)); 
 
@@ -85,9 +86,7 @@ void test_get_url(){
 	string str2 = "GET http://www.cse.cuhk.edu.hk/~kychan4 HTTP/1.1 200 OK\r\nDate: Sun, 18 Oct 2009 08:56:53 GMT\r\nServer: Apache/2.2.14 (Win32)\r\nLast-Modified: Sat, 20 Nov 2004 07:16:26 GMT\r\nAccept-Ranges: bytes\r\nContent-Length: 44\r\nConnection: close\r\nContent-Type: text/html\r\nX-Pad: avoid browser bug\r\n\r\n<html><body><h1>It works!</h1></body></html>";
 	assert( "http://www.cse.cuhk.edu.hk/~kychan4" ==get_url(str2));
 
-	//string str3 = "GET http://www.cse.cuhk.edu.hk/~kychan4 HTTP/1.1 200 OK\r\nDate: Sun, 18 Oct 2009 08:56:53 GMT\r\nServer: Apache/2.2.14 (Win32)\r\nLast-Modified: Sat, 20 Nov 2004 07:16:26 GMT\r\nAccept-Ranges: bytes\r\nContent-Length: 44\r\nConnection: close\r\nContent-Type: text/html\r\nX-Pad: avoid browser bug\r\n\r\n<html><body><h1>It works!</h1></body></html>";
-	//assert( "http://www.cse.cuhk.edu.hk/~ky" ==get_url(str3));
-
+	
 }
 
 void test_get_extension(){
