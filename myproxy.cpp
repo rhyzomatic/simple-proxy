@@ -258,7 +258,7 @@ string get_IMS(string &header){
 	size_t IMS_location = header.find("If-Modified-Since");
 	string IMS;
 
-	if (IMS_location != string::npos){ //TODO: this is untested
+	if (IMS_location != string::npos){ 
 		IMS_location += 19; // length of If-Modified-Since string
 		IMS = header.substr(IMS_location, header.find("\r\n", IMS_location) - IMS_location);
 		cout << IMS_location << "\n";
@@ -271,12 +271,12 @@ string get_LM(string &header){
 	size_t LM_location = header.find("Last-Modified: ");
 	string LM;
 
-	if (LM_location != string::npos){ //TODO: this is untested
-		LM_location += 15; // length of If-Modified-Since string
+	if (LM_location != string::npos){ 
+		LM_location += 15; // length of "Last-Modified: "
 		LM = header.substr(LM_location, header.find("\r\n", LM_location) - LM_location);
-		cout << LM_location << "\n";
+		//cout << LM_location << "\n";
 	}
-	cout << LM << "\n";
+	//cout << LM << "\n";
 	return LM;
 }
 
@@ -308,7 +308,7 @@ bool get_cache(string &header){
 int get_status_code(string header){
 	size_t status_location = header.find("HTTP/1.1 ");
 
-	status_location += 9; // length of "Content-Length: "
+	status_location += 9; // length of "HTTP/1.1 "
 	string length_str(header.substr(status_location,3));
 	int status;
 	stringstream(length_str) >> status;
