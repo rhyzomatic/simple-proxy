@@ -183,7 +183,6 @@ void pass_along_request(int client_socket, string &header){
 
 
 void parse_client_header(int client_socket, string &header){
-	//TODO: 5 special file types
 	//cout << header << endl;
 	if (header.substr(0,3) != "GET"){
 		pass_along_request(client_socket, header);
@@ -207,7 +206,7 @@ void parse_client_header(int client_socket, string &header){
 
 		string url = get_url(header);
 
-		bool will_cache = is_valid_ext(get_extension(header));
+		bool will_cache = is_valid_ext(get_extension(header)); // handles 5 file types
 
 		if (cache_exist(url)){ // cache exists YAY
 
