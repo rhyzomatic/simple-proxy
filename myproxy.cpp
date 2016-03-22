@@ -5,6 +5,7 @@
 #include <cerrno>
 #include <sys/socket.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <netinet/in.h>
 #include <pthread.h>
 #include <dirent.h>
@@ -16,6 +17,7 @@
 #include <crypt.h>
 #include <algorithm>
 #include "myproxy.h"
+#include <sys/file.h>
 #define CL(x,y) memset(x,y,sizeof(x))
 #define FUCK puts("FUCK");
 #define BUF_SIZE 2500
@@ -137,7 +139,8 @@ void parse_remote_header(int client_socket, int ext_conn_socket, string url, boo
 //TODO:MUTEX
 	if (cache) {
 		string enc = get_crypt(url);
-		file = fopen(enc.c_str(), "w+");
+		file = fopen(("cache/" + enc).c_str(), "w+");
+		flock(fileno(file), LOCK_EX);
 	}
 
 	unsigned char buf[BUF_SIZE];
@@ -327,11 +330,13 @@ void parse_client_header(int client_socket, string &header){
 		pair<string,int> host = get_hostname_and_port(header);
 		//cout << host.first << " " << host.second << "\n";
 		int content_length = get_content_length(header);
+
+		bool will_cache = true;
 		if (true){ //TODO: cache condition
-			open_ext_conn(client_socket, header, (char *) host.first.c_str(), host.second, content_length, false);
 			//TODO: MUTEX
 		}
 
+		open_ext_conn(client_socket, header, (char *) host.first.c_str(), host.second, content_length, true);
 	}
 }
 
@@ -344,8 +349,8 @@ void *connection_handler(void *client_socket_ptr){
 		if (header != ""){ 
 			parse_client_header(client_socket, header);
 		}else{
-		}
 			conn_status = -1;
+		}
 	}
 	close(client_socket);
 	printf("[%d] Client connection closed.\n", client_socket);
@@ -355,6 +360,11 @@ void *connection_handler(void *client_socket_ptr){
 
 #ifndef TEST
 int main(int argc, char *argv[]){
+	struct stat st = {0};
+
+	if (stat("cache", &st) == -1) {
+		mkdir("cache", 0700);
+	}
 	int server_socket = socket(AF_INET, SOCK_STREAM, 0);
 	long val = 1;
 	if (setsockopt(server_socket, SOL_SOCKET, SO_REUSEADDR, &val, sizeof(long)) == 1) {
