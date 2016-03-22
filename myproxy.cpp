@@ -121,6 +121,7 @@ string get_crypt(string url){
 
 void parse_remote_header(int client_socket, int ext_conn_socket, string url, bool cache){
 	//TODO:proxy-server connection option
+	//TODO:chunked
 
 	// grab the header from the remote server
 	string header = rec_header(ext_conn_socket);
