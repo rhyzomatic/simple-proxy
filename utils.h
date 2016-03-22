@@ -23,7 +23,7 @@
 #include <algorithm>
 #define CL(x,y) memset(x,y,sizeof(x))
 #define FUCK puts("FUCK");
-#define BUF_SIZE 4096
+#define BUF_SIZE 8192
 #define CACHE_DIR "cache/"
 
 void error_handler (std::string error_string);
