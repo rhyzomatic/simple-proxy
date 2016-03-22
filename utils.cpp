@@ -271,3 +271,16 @@ time_t str_to_time(string time){
 	IMS = mktime(&buf);
 	return IMS;
 }
+
+
+string time_to_str(time_t IMS){
+	struct tm *buf;
+	char str[30];
+	
+    buf = localtime(&IMS);
+
+	strftime(str,30,"%a, %d %b %Y %H:%M:%S GMT", buf);
+	cout<<str<<endl;
+	return str;
+}
+

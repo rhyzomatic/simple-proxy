@@ -130,6 +130,16 @@ void test_get_status_code(){
 }
 
 
+void test_str_to_time(){
+	string str = "Wed, 19 Oct 2005 10:50:00 GMT";
+	assert(1129690200 == str_to_time(str)); 
+}
+
+void test_time_to_str(){
+	time_t IMS = 1129690200;
+	assert("Wed, 19 Oct 2005 10:50:00 GMT" == time_to_str(IMS)); 
+}
+
 
 
 
@@ -145,5 +155,7 @@ int main(){
 	test_get_LM();
 	//test_replace_IMS();
 	test_get_status_code();
-
+	test_str_to_time();
+	test_time_to_str();
 }
+
