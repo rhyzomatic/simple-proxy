@@ -25,8 +25,8 @@
 
 
 std::string rec_header (int client_socket, size_t max_length);
-void parse_remote_header (int client_socket, int ext_conn_socket, std::string url, bool cache);
-void open_ext_conn (int client_socket, std::string & header, char * hostname, int port, int content_length, bool cache);
+//void parse_remote_header (int client_socket, int ext_conn_socket, std::string url, bool cache);
+//void open_ext_conn (int client_socket, std::string & header, char * hostname, int port, int content_length, bool cache);
 void pass_along_request (int client_socket, std::string & header);
 void parse_client_header (int client_socket, std::string & header);
 void * connection_handler (void * client_socket_ptr);

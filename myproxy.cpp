@@ -57,8 +57,9 @@ string rec_header(int client_socket, size_t max_length = 2500){
 	}
 }
 
-void parse_remote_header(int client_socket, int ext_conn_socket, string url, bool cache){
-	//TODO: deal with 304
+void parse_remote_header(int client_socket, int ext_conn_socket, string url, bool cache, bool need_obj){
+
+
 	//TODO:proxy-server connection option
 	//TODO:chunked
 
@@ -72,13 +73,20 @@ void parse_remote_header(int client_socket, int ext_conn_socket, string url, boo
 	//rec_all(ext_conn_socket, body, content_length); // no more rec_all, we need buffer
 
 	send_all(client_socket, (unsigned char *) header.c_str(), header.length());
+
+	int status = get_status_code(header);
+	if (status==304 && need_obj){
+		printf("[%d] 304 and need obj\n",client_socket);
+		send_cache(client_socket, url);
+		return;
+	}
+
 	FILE *file = NULL;
-	if (cache) {
+	if (status==200 && cache) {
 		string enc = get_crypt(url);
 		file = fopen((CACHE_DIR + enc).c_str(), "w+");
 		flock(fileno(file), LOCK_EX);
 		fwrite(header.c_str(), 1, header.length(), file);
-
 	}
 
 	unsigned char buf[BUF_SIZE];
@@ -90,19 +98,21 @@ void parse_remote_header(int client_socket, int ext_conn_socket, string url, boo
 		}
 		send_all(client_socket, buf, rec_char); 
 		
-		if (cache){
+		if (status==200 && cache){
 			fwrite(buf, 1, rec_char, file);
 		}
 
 		content_length -= rec_char;
 	}
 	printf("[%d] done parsing remote content\n",client_socket);
-	if (cache) fclose(file);
+	if (status==200 && cache) fclose(file);
 }
 
 
 
-void open_ext_conn(int client_socket, string &header, char *hostname, int port, int content_length, bool cache){
+void open_ext_conn(int client_socket, string &header, char *hostname, int port, int content_length, bool cache, bool need_obj = false){
+	// need_obj is only true for request case iii and iv
+
 	printf("[%d] opening ext conn\n", client_socket);
 	struct hostent* host;
 	host = gethostname(hostname);
@@ -130,7 +140,7 @@ void open_ext_conn(int client_socket, string &header, char *hostname, int port, 
 		send_all(ext_conn_socket, (unsigned char *) body, content_length);
 
 		// receive what the server sends
-		parse_remote_header(client_socket, ext_conn_socket, get_url(header), cache);
+		parse_remote_header(client_socket, ext_conn_socket, get_url(header), cache, need_obj);
 	}
 	close(ext_conn_socket);
 	
@@ -197,7 +207,7 @@ void parse_client_header(int client_socket, string &header){
 				   request, where the IMS time is set to be the last modified time of the cached web object.
 				 */
 				header = replace_IMS(header, time_to_str(cache_lmt));
-				open_ext_conn(client_socket, header, (char *) host.first.c_str(), host.second, content_length, will_cache);
+				open_ext_conn(client_socket, header, (char *) host.first.c_str(), host.second, content_length, will_cache, true);
 			} else { // case iv
 				/*
 				   With If-Modified-Since and with Cache-Control: no-cache. MYPROXY will
@@ -209,7 +219,7 @@ void parse_client_header(int client_socket, string &header){
 				if (cache_lmt > ims_t) {
 					header = replace_IMS(header, time_to_str(cache_lmt));
 				}
-				open_ext_conn(client_socket, header, (char *) host.first.c_str(), host.second, content_length, will_cache);
+				open_ext_conn(client_socket, header, (char *) host.first.c_str(), host.second, content_length, will_cache, true);
 
 			}
 
