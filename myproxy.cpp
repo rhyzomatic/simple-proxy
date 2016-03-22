@@ -20,10 +20,7 @@
 #include "utils.h"
 #include <sys/file.h>
 
-
 using namespace std;
-
-
 
 string rec_header(int client_socket, size_t max_length = 2500){
 	char payload [max_length];
@@ -39,8 +36,7 @@ string rec_header(int client_socket, size_t max_length = 2500){
 		if (rec_char < 1){
 			printf("[%d] Error receiving any header.\n", client_socket);
 			break;
-		}
-		else { // we know we got one byte
+		} else { // we know we got one byte
 			total_rec_length++;
 			current_ptr++;
 			if (strcmp(current_ptr - 4, "\r\n\r\n") == 0){
@@ -53,18 +49,13 @@ string rec_header(int client_socket, size_t max_length = 2500){
 	if (good_header){
 		string header(payload);
 		return header;
-	}
-	else {
+	} else {
 		puts("HEADER----");
 		puts(payload);
 		printf("[%d] Error receiving header.\n", client_socket);
 		return "";
 	}
 }
-
-
-
-
 
 void parse_remote_header(int client_socket, int ext_conn_socket, string url, bool cache){
 	//TODO: deal with 304
@@ -107,9 +98,6 @@ void parse_remote_header(int client_socket, int ext_conn_socket, string url, boo
 	}
 	printf("[%d] done parsing remote content\n",client_socket);
 	if (cache) fclose(file);
-
-	// pass header and body along to client
-//	send_all(client_socket, (unsigned char *)body, content_length);
 }
 
 struct hostent *gethostname (char *host)
@@ -157,8 +145,7 @@ void open_ext_conn(int client_socket, string &header, char *hostname, int port, 
 	printf("[%d] after connect\n", client_socket);
 	if (remote_socket < 0){
 		printf("[%d] Could not connect to remote server", client_socket); // maybe change this so it doesn't exit the program
-	}
-	else {
+	} else {
 		printf("[%d] Connected to remote\n",client_socket);
 		char body [content_length];
 		CL(body,0);
@@ -186,8 +173,7 @@ void parse_client_header(int client_socket, string &header){
 	//cout << header << endl;
 	if (header.substr(0,3) != "GET"){
 		pass_along_request(client_socket, header);
-	}
-	else {
+	} else {
 		istringstream header_stream(header);
 
 		string address(get_url(header)); //TODO: check if this is legit... maybe first line doesn't necessarily have a space and the HTTP/1.1 or whatever
@@ -209,18 +195,18 @@ void parse_client_header(int client_socket, string &header){
 		bool will_cache = is_valid_ext(get_extension(header)); // handles 5 file types
 
 		if (cache_exist(url)){ // cache exists YAY
+			time_t cache_lmt = cache_LM(url);
 
 			printf("[%d] Cache exist, sending cache\n", client_socket);
 			if (IMS == "" && !no_cache){ //case i
 				send_cache(client_socket, url);
-			}else if (IMS != "" && !no_cache){ //case ii
+			} else if (IMS != "" && !no_cache){ //case ii
 				/*
 				   MYPROXY checks if the IMS
 				   time is later than the last modified time of the cached web object (see the hints below for how to
 				   obtain the last modified time). If yes, MYPROXY returns a 304 (not modified) response to the
 				   client; else it returns the cached object to the client.
 				 */
-				time_t cache_lmt = cache_LM(url);
 				time_t ims_t = str_to_time(IMS);
 				if (ims_t > cache_lmt) {
 					string res = "HTTP/1.1 304 Not Modified\r\n\r\n";
@@ -229,9 +215,15 @@ void parse_client_header(int client_socket, string &header){
 					send_cache(client_socket, url);
 				}
 
-			}else if (IMS == "" && no_cache){ // case iii
+			} else if (IMS == "" && no_cache){ // case iii
 				//TODO: insert header IMS
-
+				/*
+				   No If-Modified-Since and with Cache-Control: no-cache. MYPROXY will
+				   forward the request to the web server. It will also insert the If-Modified-Since header to the
+				   request, where the IMS time is set to be the last modified time of the cached web object.
+				 */
+				header = replace_IMS(header, time_to_str(cache_lmt));
+				open_ext_conn(client_socket, header, (char *) host.first.c_str(), host.second, content_length, will_cache);
 			} else { // case iv
 				/*
 				   With If-Modified-Since and with Cache-Control: no-cache. MYPROXY will
@@ -239,9 +231,15 @@ void parse_client_header(int client_socket, string &header){
 				   object is after the IMS time, then the IMS time will be overwritten with the last modified time of
 				   the cached web object.
 				 */
+				time_t ims_t = str_to_time(IMS);
+				if (cache_lmt > ims_t) {
+					header = replace_IMS(header, time_to_str(cache_lmt));
+				}
+				open_ext_conn(client_socket, header, (char *) host.first.c_str(), host.second, content_length, will_cache);
+
 			}
 
-		}else{ // NOPE, cache does not exist SOSAD
+		} else { // NOPE, cache does not exist SOSAD
 			open_ext_conn(client_socket, header, (char *) host.first.c_str(), host.second, content_length, will_cache);
 		}
 
@@ -256,7 +254,7 @@ void *connection_handler(void *client_socket_ptr){
 		string header = rec_header(client_socket);
 		if (header != ""){ 
 			parse_client_header(client_socket, header);
-		}else{
+		} else {
 			conn_status = -1;
 		}
 	}
