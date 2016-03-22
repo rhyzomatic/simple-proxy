@@ -147,15 +147,16 @@ string get_LM (string & header){
 
 
 string change_IMS (string & header){
-	string test ="If-Modified-Since: Wed, 19 Oct 2005 10:50:00 GMT";
-	size_t IMS_location = header.find("If-Modified-Since");
-	string IMS;
+	string test ="Wed, 19 Oct 2005 10:50:00 GMT";
+	int ims_ind = header.find("If-Modified-Since: ");
 
-	if (IMS_location != string::npos){ 
-		IMS = header.substr(IMS_location, header.find("\r\n", IMS_location));
-		IMS.replace(IMS_location,header.find("\r\n", IMS_location),test);
+	if (ims_ind != string::npos){
+		int crlf_ind = header.find("\r\n",ims_ind);
+		header.replace(ims_ind, crlf_ind-ims_ind+1-1, "If-Modified-Since: " + test);
 	}
-	return IMS;
+
+	cout << header << endl;
+	return header;
 }
 
 

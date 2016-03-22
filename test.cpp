@@ -56,17 +56,6 @@ void test_get_LM(){
 
 }
 
-void test_change_IMS(){
-	
-	string str4 = "HTTP/1.1 200 OK\r\nServer: Apache/2.2.14 (Win32)\r\nIf-Modified-Since: Wed, 19 Oct 2005 10:50:00 GMT\r\nLast-Modified: Wed, 19 Oct 2005 10:50:00 GMT\r\nAccept-Ranges: bytes\r\nCache-control: no-cache\r\nContent-Type: text/html\r\nX-Pad: avoid browser bug\r\n\r\n<html><body><h1>It works!</h1></body></html>";
-	assert( false == change_IMS(str4)); 
-
-	string str5 = "HTTP/1.1 200 OK\r\nServer: Apache/2.2.14 (Win32)\r\nIf-Modified-Since: Wed, 19 Oct 2005 10:50:00 GMT\r\nLast-Modified: Wed, 20 Oct 2005 10:50:00 GMT\r\nAccept-Ranges: bytes\r\nCache-control: no-cache\r\nContent-Type: text/html\r\nX-Pad: avoid browser bug\r\n\r\n<html><body><h1>It works!</h1></body></html>";
-	assert( true == change_IMS(str5)); 
-
-	
-
-}
 
 void test_get_hostname_and_port(){
 	string str5 = "HTTP/1.1 200 OK\r\nHost: www.cse.cuhk.edu.hk:80\r\nServer: Apache/2.2.14 (Win32)\r\nLast-Modified: Sat, 20 Nov 2004 07:16:26 GMT\r\nAccept-Ranges: bytes\r\nContent-Length: 44\r\nConnection: close\r\nContent-Type: text/html\r\nX-Pad: avoid browser bug\r\n\r\n<html><body><h1>It works!</h1></body></html>";
@@ -143,8 +132,8 @@ void test_get_status_code(){
 
 void test_change_IMS(){
 
-	string str4 = "HTTP/1.1 200 OK\r\nServer: Apache/2.2.14 (Win32)\r\nIf-Modified-Since: Wed, 20 Mar 2015 10:50:10 GMT\r\nLast-Modified: Wed, 19 Oct 2005 10:50:00 GMT\r\nAccept-Ranges: bytes\r\nCache-control: no-cache\r\nContent-Type: text/html\r\nX-Pad: avoid browser bug\r\n\r\n<html><body><h1>It works!</h1></body></html>";
-	assert( "If-Modified-Since: Wed, 19 Oct 2005 10:50:00 GMT" == change_IMS(str4)); 
+	string str4 = "HTTP/1.1 200 OK\r\nServer: Apache/2.2.14 (Win32)\r\nIf-Modified-Since: Wed, 20 Mar 2015 10:50:10 GMT\r\nAccept-Ranges: bytes\r\nCache-control: no-cache\r\nContent-Type: text/html\r\nX-Pad: avoid browser bug\r\n\r\n<html><body><h1>It works!</h1></body></html>";
+	assert( "HTTP/1.1 200 OK\r\nServer: Apache/2.2.14 (Win32)\r\nIf-Modified-Since: Wed, 20 Mar 2015 10:50:10 GMT\r\nAccept-Ranges: bytes\r\nCache-control: no-cache\r\nContent-Type: text/html\r\nX-Pad: avoid browser bug\r\n\r\n<html><body><h1>It works!</h1></body></html>" != change_IMS(str4)); 
 	
 
 }
@@ -162,5 +151,5 @@ int main(){
 	test_get_LM();
 	test_change_IMS();
 	test_get_status_code();
-	test_chnage_IMS();
+
 }
