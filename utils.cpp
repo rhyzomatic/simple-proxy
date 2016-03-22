@@ -97,6 +97,33 @@ void send_cache (int client_socket, string url){
 	fclose(file);
 }
 
+struct hostent *gethostname (char *host)
+{
+	struct hostent *hostbuf, *hp;
+	size_t hstbuflen;
+	char *tmphstbuf;
+	int res;
+	int herr;
+
+	hostbuf = (hostent*) malloc (sizeof (struct hostent));
+	hstbuflen = 1024;
+	tmphstbuf = (char*) malloc (hstbuflen);
+
+	while ((res = gethostbyname_r (host, hostbuf, tmphstbuf, hstbuflen,
+					&hp, &herr)) == ERANGE)
+	{
+		/* Enlarge the buffer.  */
+		hstbuflen *= 2;
+		tmphstbuf = (char*) realloc (tmphstbuf, hstbuflen);
+	}
+
+	free (tmphstbuf);
+	/*  Check for errors.  */
+	if (res || hp == NULL)
+		return NULL;
+	return hp;
+}
+
 pair <string,int> get_hostname_and_port (string & header){
 	size_t hostname_location = header.find("Host: ");
 	if (hostname_location == string::npos){
@@ -146,15 +173,22 @@ string get_LM (string & header){
 }
 
 
-bool change_IMS (string & header){
-	bool change = false;
-	string IMS = get_IMS(header);
-	string LM = get_LM(header);
-	if(IMS.compare(LM) != 0){
-	 change = true;
+string replace_IMS (string header, string new_IMS){
+	
+	int ims_ind = header.find("If-Modified-Since: ");
+
+	if(ims_ind != string::npos){
+		int crlf_ind = header.find("\r\n",ims_ind);
+		header.replace(ims_ind, crlf_ind-ims_ind+1-1, "If-Modified-Since: "+ new_IMS);
+	}else{
+		header.insert(header.find("\r\n"),"\r\nIf-Modified-Since: " + new_IMS);
 	}
-	return change;
+
+	cout << header << endl;
+	return header;
 }
+
+
 
 
 bool get_cache (string & header){
@@ -180,7 +214,7 @@ int get_status_code (string header){
 	string length_str(header.substr(status_location,3));
 	int status;
 	stringstream(length_str) >> status;
-	cout << status << "\n";
+//	cout << status << "\n";
 	return status;
 	
 }
@@ -224,4 +258,40 @@ bool is_using_chunked_encoding(string header){
     cout << "Dat nasty chunked: " << header.substr(chunked_ind, 20) << "\n";
     return false;
   }
+}
+
+time_t cache_LM(string url){
+	struct stat buf;
+	time_t LMT;
+	string filename = get_crypt(url);
+	if((stat((CACHE_DIR+filename).c_str(),&buf))!=0){
+		if(errno != ENOENT){
+			perror("Error");
+		}else{
+			//Cache not exists
+		}
+	}else{
+		memcpy(&(LMT),&buf.st_mtime,sizeof(time_t));
+	}
+	return LMT;
+}
+
+time_t str_to_time(string time){
+	struct tm buf;
+	time_t IMS;
+	strptime(time.c_str(), "%a, %d %b %Y %H:%M:%S GMT", &buf);
+	IMS = mktime(&buf);
+	return IMS;
+}
+
+
+string time_to_str(time_t IMS){
+	struct tm *buf;
+	char str[30];
+	
+    buf = localtime(&IMS);
+
+	strftime(str,30,"%a, %d %b %Y %H:%M:%S GMT", buf);
+	cout<<str<<endl;
+	return str;
 }
