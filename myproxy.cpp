@@ -209,6 +209,7 @@ void parse_client_header(int client_socket, string &header){
 		bool will_cache = is_valid_ext(get_extension(header)); // handles 5 file types
 
 		if (cache_exist(url)){ // cache exists YAY
+			time_t cache_lmt = cache_LM(url);
 
 			printf("[%d] Cache exist, sending cache\n", client_socket);
 			if (IMS == "" && !no_cache){ //case i
@@ -220,7 +221,6 @@ void parse_client_header(int client_socket, string &header){
 				   obtain the last modified time). If yes, MYPROXY returns a 304 (not modified) response to the
 				   client; else it returns the cached object to the client.
 				 */
-				time_t cache_lmt = cache_LM(url);
 				time_t ims_t = str_to_time(IMS);
 				if (ims_t > cache_lmt) {
 					string res = "HTTP/1.1 304 Not Modified\r\n\r\n";
@@ -231,7 +231,13 @@ void parse_client_header(int client_socket, string &header){
 
 			}else if (IMS == "" && no_cache){ // case iii
 				//TODO: insert header IMS
-
+				/*
+				   No If-Modified-Since and with Cache-Control: no-cache. MYPROXY will
+				   forward the request to the web server. It will also insert the If-Modified-Since header to the
+				   request, where the IMS time is set to be the last modified time of the cached web object.
+				 */
+				header = change_IMS(header, time_to_str(cache_lmt));
+				open_ext_conn(client_socket, header, (char *) host.first.c_str(), host.second, content_length, will_cache);
 			} else { // case iv
 				/*
 				   With If-Modified-Since and with Cache-Control: no-cache. MYPROXY will
@@ -239,6 +245,13 @@ void parse_client_header(int client_socket, string &header){
 				   object is after the IMS time, then the IMS time will be overwritten with the last modified time of
 				   the cached web object.
 				 */
+				time_t ims_t = str_to_time(IMS);
+				if (cache_lmt > ims_t) {
+					header = change_IMS(header, time_to_str(cache_lmt));
+				}
+				open_ext_conn(client_socket, header, (char *) host.first.c_str(), host.second, content_length, will_cache);
+
+
 			}
 
 		}else{ // NOPE, cache does not exist SOSAD
