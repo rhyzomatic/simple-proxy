@@ -146,7 +146,7 @@ string get_LM (string & header){
 }
 
 
-string change_IMS (string & header){
+string replace_IMS (string header){
 	string test ="Wed, 19 Oct 2005 10:50:00 GMT";
 	int ims_ind = header.find("If-Modified-Since: ");
 
@@ -154,17 +154,14 @@ string change_IMS (string & header){
 		int crlf_ind = header.find("\r\n",ims_ind);
 		header.replace(ims_ind, crlf_ind-ims_ind+1-1, "If-Modified-Since: " + test);
 	}else{
-		header = replace_IMS(header,test);
+		header.insert(header.find("\r\n"),"\r\nIf-Modified-Since: "+ test);
 	}
 
 	cout << header << endl;
 	return header;
 }
 
-string replace_IMS(string & header,string test){
-	header.insert(header.find("\r\n\r\n"),"\r\nIf-Modified-Since: "+ test);
-	return header;
-}
+
 
 
 bool get_cache (string & header){

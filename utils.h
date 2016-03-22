@@ -36,7 +36,7 @@ void send_cache (int client_socket, std::string url);
 std::pair <std::string,int> get_hostname_and_port (std::string & header);
 std::string get_IMS (std::string & header);
 std::string get_LM (std::string & header);
-std::string change_IMS (std::string & header);
+std::string replace_IMS (std::string header);
 bool get_cache (std::string & header);
 int get_status_code (std::string header);
 std::string get_url (std::string & header);
@@ -44,6 +44,5 @@ std::string get_extension (std::string & header);
 bool is_valid_ext (std::string ext);
 time_t cache_LM(std::string url);
 time_t str_to_time(std::string time);
-std::string replace_IMS (std::string & header,std::string test);
 
 #endif
