@@ -36,7 +36,7 @@ void send_cache (int client_socket, std::string url);
 std::pair <std::string,int> get_hostname_and_port (std::string & header);
 std::string get_IMS (std::string & header);
 std::string get_LM (std::string & header);
-bool change_IMS (std::string & header);
+std::string change_IMS (std::string & header);
 bool get_cache (std::string & header);
 int get_status_code (std::string header);
 std::string get_url (std::string & header);

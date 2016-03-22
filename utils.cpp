@@ -146,14 +146,16 @@ string get_LM (string & header){
 }
 
 
-bool change_IMS (string & header){
-	bool change = false;
-	string IMS = get_IMS(header);
-	string LM = get_LM(header);
-	if(IMS.compare(LM) != 0){
-	 change = true;
+string change_IMS (string & header){
+	string test ="If-Modified-Since: Wed, 19 Oct 2005 10:50:00 GMT";
+	size_t IMS_location = header.find("If-Modified-Since");
+	string IMS;
+
+	if (IMS_location != string::npos){ 
+		IMS = header.substr(IMS_location, header.find("\r\n", IMS_location));
+		IMS.replace(IMS_location,header.find("\r\n", IMS_location),test);
 	}
-	return change;
+	return IMS;
 }
 
 
