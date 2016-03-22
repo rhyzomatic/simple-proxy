@@ -183,7 +183,6 @@ void pass_along_request(int client_socket, string &header){
 
 
 void parse_client_header(int client_socket, string &header){
-	//TODO: 5 special file types
 	//cout << header << endl;
 	if (header.substr(0,3) != "GET"){
 		pass_along_request(client_socket, header);
@@ -207,7 +206,7 @@ void parse_client_header(int client_socket, string &header){
 
 		string url = get_url(header);
 
-		bool will_cache = is_valid_ext(get_extension(header));
+		bool will_cache = is_valid_ext(get_extension(header)); // handles 5 file types
 
 		if (cache_exist(url)){ // cache exists YAY
 
@@ -221,6 +220,14 @@ void parse_client_header(int client_socket, string &header){
 				   obtain the last modified time). If yes, MYPROXY returns a 304 (not modified) response to the
 				   client; else it returns the cached object to the client.
 				 */
+				time_t cache_lmt = cache_LM(url);
+				time_t ims_t = str_to_time(IMS);
+				if (ims_t > cache_lmt) {
+					string res = "HTTP/1.1 304 Not Modified\r\n\r\n";
+					send_all(client_socket, (unsigned char *)res.c_str(), res.length());
+				} else {
+					send_cache(client_socket, url);
+				}
 
 			}else if (IMS == "" && no_cache){ // case iii
 				//TODO: insert header IMS
@@ -238,13 +245,6 @@ void parse_client_header(int client_socket, string &header){
 			open_ext_conn(client_socket, header, (char *) host.first.c_str(), host.second, content_length, will_cache);
 		}
 
-
-		if (cache_exist(url)){//TODO:FIX THIS
-			printf("[%d] Cache exist, sending cache\n", client_socket);
-			send_cache(client_socket, url);
-		}else{
-			open_ext_conn(client_socket, header, (char *) host.first.c_str(), host.second, content_length, true);
-		}
 	}
 }
 
