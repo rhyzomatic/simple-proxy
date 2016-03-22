@@ -245,13 +245,6 @@ void parse_client_header(int client_socket, string &header){
 			open_ext_conn(client_socket, header, (char *) host.first.c_str(), host.second, content_length, will_cache);
 		}
 
-
-		if (cache_exist(url)){//TODO:FIX THIS
-			printf("[%d] Cache exist, sending cache\n", client_socket);
-			send_cache(client_socket, url);
-		}else{
-			open_ext_conn(client_socket, header, (char *) host.first.c_str(), host.second, content_length, true);
-		}
 	}
 }
 
