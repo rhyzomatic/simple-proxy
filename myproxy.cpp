@@ -68,8 +68,8 @@ void parse_remote_header(int client_socket, int ext_conn_socket, string url, boo
 	int content_length = get_content_length(header);
 
 	// recieve the body from remote
-	char body [content_length];
-	CL(body,0);
+//	unsigned char *body = new unsigned char[content_length];
+//	CL(body,0);
 	//rec_all(ext_conn_socket, body, content_length); // no more rec_all, we need buffer
 
 	send_all(client_socket, (unsigned char *) header.c_str(), header.length());
@@ -131,16 +131,18 @@ void open_ext_conn(int client_socket, string &header, char *hostname, int port, 
 		printf("[%d] Could not connect to remote server", client_socket); // maybe change this so it doesn't exit the program
 	} else {
 		printf("[%d] Connected to remote\n",client_socket);
-		char body [content_length];
-		CL(body,0);
-		rec_all(client_socket, (unsigned char *)body, content_length); // body now has the body of what the client is trying to send
+		unsigned char *body = new unsigned char[content_length];
+//		CL(body,0);
+		rec_all(client_socket, body, content_length); // body now has the body of what the client is trying to send
 
 		//send header and then body to remote server
-		send_all(ext_conn_socket, (unsigned char *) header.c_str(), header.length());
-		send_all(ext_conn_socket, (unsigned char *) body, content_length);
+		send_all(ext_conn_socket, (unsigned char *)header.c_str(), header.length());
+		send_all(ext_conn_socket, body, content_length);
 
 		// receive what the server sends
 		parse_remote_header(client_socket, ext_conn_socket, get_url(header), cache, need_obj);
+
+		delete body;
 	}
 	close(ext_conn_socket);
 	
