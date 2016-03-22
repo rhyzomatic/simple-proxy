@@ -138,6 +138,7 @@ void send_cache(int client_socket, string url){
 }
 
 void parse_remote_header(int client_socket, int ext_conn_socket, string url, bool cache){
+	//TODO: deal with 304
 	//TODO:proxy-server connection option
 	//TODO:chunked
 
