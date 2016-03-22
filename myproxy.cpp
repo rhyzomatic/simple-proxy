@@ -261,9 +261,9 @@ string get_IMS(string &header){
 	if (IMS_location != string::npos){ //TODO: this is untested
 		IMS_location += 19; // length of If-Modified-Since string
 		IMS = header.substr(IMS_location, header.find("\r\n", IMS_location) - IMS_location);
-		cout << IMS_location << "\n";
+		//cout << IMS_location << "\n";
 	}
-	cout << IMS << "\n";
+	//cout << IMS << "\n";
 	return IMS;
 }
 
@@ -274,9 +274,9 @@ string get_LM(string &header){
 	if (LM_location != string::npos){ //TODO: this is untested
 		LM_location += 15; // length of If-Modified-Since string
 		LM = header.substr(LM_location, header.find("\r\n", LM_location) - LM_location);
-		cout << LM_location << "\n";
+		//cout << LM_location << "\n";
 	}
-	cout << LM << "\n";
+	//cout << LM << "\n";
 	return LM;
 }
 
@@ -301,8 +301,20 @@ bool get_cache(string &header){
 			no_cache = true;
 		}
 	}
-	cout << CC << "\n";
+	//cout << CC << "\n";
 	return no_cache;
+}
+
+int get_status_code(string header){
+	size_t status_location = header.find("HTTP/1.1 ");
+
+	status_location += 9; // length of "Content-Length: "
+	string length_str(header.substr(status_location,3));
+	int status;
+	stringstream(length_str) >> status;
+	//cout << status << "\n";
+	return status;
+	
 }
 
 

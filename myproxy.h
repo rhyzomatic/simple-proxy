@@ -41,6 +41,7 @@ std::string get_extension(std::string &header);
 bool is_valid_ext(std::string ext);
 std::string get_LM (std::string & header);
 bool change_IMS(std::string &header);
+int get_status_code(std::string header);
 
 
 #endif

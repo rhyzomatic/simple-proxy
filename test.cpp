@@ -128,6 +128,18 @@ void test_is_valid_ext(){
 
 }
 
+void test_get_status_code(){
+
+	string str4 = "HTTP/1.1 200 OK\r\nServer: Apache/2.2.14 (Win32)\r\nIf-Modified-Since: Wed, 19 Oct 2005 10:50:00 GMT\r\nLast-Modified: Wed, 19 Oct 2005 10:50:00 GMT\r\nAccept-Ranges: bytes\r\nCache-control: no-cache\r\nContent-Type: text/html\r\nX-Pad: avoid browser bug\r\n\r\n<html><body><h1>It works!</h1></body></html>";
+	assert( 200 == get_status_code(str4)); 
+
+	string str5 = "HTTP/1.1 404 OK\r\nServer: Apache/2.2.14 (Win32)\r\nIf-Modified-Since: Wed, 19 Oct 2005 10:50:00 GMT\r\nLast-Modified: Wed, 20 Oct 2005 10:50:00 GMT\r\nAccept-Ranges: bytes\r\nCache-control: no-cache\r\nContent-Type: text/html\r\nX-Pad: avoid browser bug\r\n\r\n<html><body><h1>It works!</h1></body></html>";
+	assert( 404 == get_status_code(str5)); 
+
+	
+
+}
+
 int main(){
 
 	test_get_content_length();
@@ -139,4 +151,5 @@ int main(){
 	test_is_valid_ext();
 	test_get_LM();
 	test_change_IMS();
+	test_get_status_code();
 }
