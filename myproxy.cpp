@@ -20,7 +20,8 @@
 #include <sys/file.h>
 #define CL(x,y) memset(x,y,sizeof(x))
 #define FUCK puts("FUCK");
-#define BUF_SIZE 2500
+#define BUF_SIZE 4096
+#define CACHE_DIR "cache/"
 
 using namespace std;
 
@@ -110,7 +111,7 @@ int get_content_length(string header){
 	}
 }
 
-string get_crypt(string url){
+string get_crypt(string &url){
 	crypt_data data;
 	data.initialized = 0;
 	char *enc;
@@ -119,6 +120,21 @@ string get_crypt(string url){
 	replace(s.begin(), s.end(), '/', '_');
 	replace(s.begin(), s.end(), '.', '-');
 	return s;
+}
+
+bool cache_exist(string &url){
+	return (access((CACHE_DIR+get_crypt(url)).c_str(), F_OK) != -1); //file exist	
+}
+
+void send_cache(int client_socket, string url){
+	FILE *file = fopen((CACHE_DIR+get_crypt(url)).c_str(), "r");
+	flock(fileno(file), LOCK_EX);
+	unsigned char buf[BUF_SIZE];
+	int size;
+	while (size = fread(buf,1,BUF_SIZE,file)){
+		send_all(client_socket, buf, size);
+	}
+	fclose(file);
 }
 
 void parse_remote_header(int client_socket, int ext_conn_socket, string url, bool cache){
@@ -139,8 +155,9 @@ void parse_remote_header(int client_socket, int ext_conn_socket, string url, boo
 //TODO:MUTEX
 	if (cache) {
 		string enc = get_crypt(url);
-		file = fopen(("cache/" + enc).c_str(), "w+");
+		file = fopen((CACHE_DIR + enc).c_str(), "w+");
 		flock(fileno(file), LOCK_EX);
+		fwrite(header.c_str(), 1, header.length(), file);
 	}
 
 	unsigned char buf[BUF_SIZE];
@@ -336,7 +353,13 @@ void parse_client_header(int client_socket, string &header){
 			//TODO: MUTEX
 		}
 
-		open_ext_conn(client_socket, header, (char *) host.first.c_str(), host.second, content_length, true);
+		string url = get_url(header);
+		if (cache_exist(url)){//TODO:FIX THIS
+			printf("[%d] Cache exist, sending cache\n", client_socket);
+			send_cache(client_socket, url);
+		}else{
+			open_ext_conn(client_socket, header, (char *) host.first.c_str(), host.second, content_length, true);
+		}
 	}
 }
 
