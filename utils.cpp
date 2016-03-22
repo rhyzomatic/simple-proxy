@@ -150,12 +150,19 @@ string change_IMS (string & header){
 	string test ="Wed, 19 Oct 2005 10:50:00 GMT";
 	int ims_ind = header.find("If-Modified-Since: ");
 
-	if (ims_ind != string::npos){
+	if(ims_ind != string::npos){
 		int crlf_ind = header.find("\r\n",ims_ind);
 		header.replace(ims_ind, crlf_ind-ims_ind+1-1, "If-Modified-Since: " + test);
+	}else{
+		header = replace_IMS(header,test);
 	}
 
 	cout << header << endl;
+	return header;
+}
+
+string replace_IMS(string & header,string test){
+	header.insert(header.find("\r\n\r\n"),"\r\nIf-Modified-Since: "+ test);
 	return header;
 }
 

@@ -135,7 +135,9 @@ void test_change_IMS(){
 	string str4 = "HTTP/1.1 200 OK\r\nServer: Apache/2.2.14 (Win32)\r\nIf-Modified-Since: Wed, 20 Mar 2015 10:50:10 GMT\r\nAccept-Ranges: bytes\r\nCache-control: no-cache\r\nContent-Type: text/html\r\nX-Pad: avoid browser bug\r\n\r\n<html><body><h1>It works!</h1></body></html>";
 	assert( "HTTP/1.1 200 OK\r\nServer: Apache/2.2.14 (Win32)\r\nIf-Modified-Since: Wed, 20 Mar 2015 10:50:10 GMT\r\nAccept-Ranges: bytes\r\nCache-control: no-cache\r\nContent-Type: text/html\r\nX-Pad: avoid browser bug\r\n\r\n<html><body><h1>It works!</h1></body></html>" != change_IMS(str4)); 
 	
-
+	string str5 = "HTTP/1.1 200 OK\r\nServer: Apache/2.2.14 (Win32)\r\nAccept-Ranges: bytes\r\nCache-control: no-cache\r\nContent-Type: text/html\r\nX-Pad: avoid browser bug\r\n\r\n<html><body><h1>It works!</h1></body></html>";
+	assert( "HTTP/1.1 200 OK\r\nServer: Apache/2.2.14 (Win33)\r\nAccept-Ranges: bytes\r\nCache-control: no-cache\r\nContent-Type: text/html\r\nX-Pad: avoid browser bug\r\n\r\nIf-Modified-Since: Wed, 19 Oct 2005 10:50:00 GMT\r\n<html><body><h1>It works!</h1></body></html>" == change_IMS(str5)); 
+	
 }
 
 
