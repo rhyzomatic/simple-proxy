@@ -20,10 +20,7 @@
 #include "utils.h"
 #include <sys/file.h>
 
-
 using namespace std;
-
-
 
 string rec_header(int client_socket, size_t max_length = 2500){
 	char payload [max_length];
@@ -61,10 +58,6 @@ string rec_header(int client_socket, size_t max_length = 2500){
 		return "";
 	}
 }
-
-
-
-
 
 void parse_remote_header(int client_socket, int ext_conn_socket, string url, bool cache){
 	//TODO: deal with 304
@@ -107,9 +100,6 @@ void parse_remote_header(int client_socket, int ext_conn_socket, string url, boo
 	}
 	printf("[%d] done parsing remote content\n",client_socket);
 	if (cache) fclose(file);
-
-	// pass header and body along to client
-//	send_all(client_socket, (unsigned char *)body, content_length);
 }
 
 struct hostent *gethostname (char *host)
@@ -236,7 +226,7 @@ void parse_client_header(int client_socket, string &header){
 				   forward the request to the web server. It will also insert the If-Modified-Since header to the
 				   request, where the IMS time is set to be the last modified time of the cached web object.
 				 */
-				header = change_IMS(header, time_to_str(cache_lmt));
+				header = replace_IMS(header, time_to_str(cache_lmt));
 				open_ext_conn(client_socket, header, (char *) host.first.c_str(), host.second, content_length, will_cache);
 			} else { // case iv
 				/*
@@ -247,10 +237,9 @@ void parse_client_header(int client_socket, string &header){
 				 */
 				time_t ims_t = str_to_time(IMS);
 				if (cache_lmt > ims_t) {
-					header = change_IMS(header, time_to_str(cache_lmt));
+					header = replace_IMS(header, time_to_str(cache_lmt));
 				}
 				open_ext_conn(client_socket, header, (char *) host.first.c_str(), host.second, content_length, will_cache);
-
 
 			}
 
