@@ -30,8 +30,6 @@ string rec_header(int client_socket, size_t max_length = 2500){
 	int total_rec_length = 0;
 	bool good_header = false;
 	while (total_rec_length < max_length){
-//		puts("WHAT WE HAVE NOW---");
-//		puts(payload);
 		ssize_t rec_char = recv(client_socket, current_ptr, 1, 0);
 		if (rec_char < 1){
 			printf("[%d] Error receiving any header.\n", client_socket);
@@ -67,10 +65,6 @@ void parse_remote_header(int client_socket, int ext_conn_socket, string url, boo
 	string header = rec_header(ext_conn_socket);
 	int content_length = get_content_length(header);
 
-	// recieve the body from remote
-//	unsigned char *body = new unsigned char[content_length];
-//	CL(body,0);
-	//rec_all(ext_conn_socket, body, content_length); // no more rec_all, we need buffer
 
 	send_all(client_socket, (unsigned char *) header.c_str(), header.length());
 
@@ -89,6 +83,7 @@ void parse_remote_header(int client_socket, int ext_conn_socket, string url, boo
 		fwrite(header.c_str(), 1, header.length(), file);
 	}
 
+	// recieve the body from remote
 	unsigned char buf[BUF_SIZE];
 	while (content_length > 0){
 		printf("[%d] remain len %d\n",client_socket,content_length);
@@ -286,7 +281,7 @@ int main(int argc, char *argv[]){
 			perror("Could not spawn thread.\n");
 			return 1;
 		}
-		void *status;
+//		void *status;
 //		pthread_detach(new_thread);
 //		pthread_join(new_thread,&status);
 	}
