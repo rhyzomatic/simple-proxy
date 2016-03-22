@@ -112,6 +112,33 @@ void parse_remote_header(int client_socket, int ext_conn_socket, string url, boo
 //	send_all(client_socket, (unsigned char *)body, content_length);
 }
 
+struct hostent *gethostname (char *host)
+{
+	struct hostent *hostbuf, *hp;
+	size_t hstbuflen;
+	char *tmphstbuf;
+	int res;
+	int herr;
+
+	hostbuf = (hostent*) malloc (sizeof (struct hostent));
+	hstbuflen = 1024;
+	tmphstbuf = (char*) malloc (hstbuflen);
+
+	while ((res = gethostbyname_r (host, hostbuf, tmphstbuf, hstbuflen,
+					&hp, &herr)) == ERANGE)
+	{
+		/* Enlarge the buffer.  */
+		hstbuflen *= 2;
+		tmphstbuf = (char*) realloc (tmphstbuf, hstbuflen);
+	}
+
+	free (tmphstbuf);
+	/*  Check for errors.  */
+	if (res || hp == NULL)
+		return NULL;
+	return hp;
+}
+
 
 void open_ext_conn(int client_socket, string &header, char *hostname, int port, int content_length, bool cache){
 	printf("[%d] opening ext conn\n", client_socket);
