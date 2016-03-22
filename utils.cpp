@@ -27,13 +27,12 @@
 
 using namespace std;
 
-void error_handler (string error_string)
-                                       {
+void error_handler (string error_string){
 	perror(error_string.c_str());
 	exit(0);
 }
-int send_all (int client_socket, unsigned char * buffer, int length)
-                                                                  {
+
+int send_all (int client_socket, unsigned char * buffer, int length){
 	unsigned char *current_ptr = buffer;
 	while (length > 0){
 		int sent_char = send(client_socket, current_ptr, length, MSG_NOSIGNAL);
@@ -45,8 +44,8 @@ int send_all (int client_socket, unsigned char * buffer, int length)
 	}
 	return 0;
 }
-int rec_all (int client_socket, unsigned char * payload, int length)
-                                                                  {
+
+int rec_all (int client_socket, unsigned char * payload, int length){
 	unsigned char *current_ptr = payload;
 	int len = 0;
 	while (length > 0){
@@ -61,8 +60,8 @@ int rec_all (int client_socket, unsigned char * payload, int length)
 	}
 	return len;
 }
-int get_content_length (string header)
-                                     {
+
+int get_content_length (string header){
 	size_t content_length_location = header.find("Content-Length: ");
 	if (content_length_location == string::npos){ // not found, must be 0
 		return 0;
@@ -75,8 +74,8 @@ int get_content_length (string header)
 		return content_length;
 	}
 }
-string get_crypt (string & url)
-                             {
+
+string get_crypt (string & url){
 	crypt_data data;
 	data.initialized = 0;
 	char *enc;
@@ -86,12 +85,12 @@ string get_crypt (string & url)
 	replace(s.begin(), s.end(), '.', '-');
 	return s;
 }
-bool cache_exist (string & url)
-                             {
+
+bool cache_exist (string & url){
 	return (access((CACHE_DIR+get_crypt(url)).c_str(), F_OK) != -1); //file exist	
 }
-void send_cache (int client_socket, string url)
-                                              {
+
+void send_cache (int client_socket, string url){
 	FILE *file = fopen((CACHE_DIR+get_crypt(url)).c_str(), "r");
 	flock(fileno(file), LOCK_EX);
 	unsigned char buf[BUF_SIZE];
@@ -101,8 +100,8 @@ void send_cache (int client_socket, string url)
 	}
 	fclose(file);
 }
-pair <string,int> get_hostname_and_port (string & header)
-                                                      {
+
+pair <string,int> get_hostname_and_port (string & header){
 	size_t hostname_location = header.find("Host: ");
 	if (hostname_location == string::npos){
 		error_handler("Could not extract hostame from header");
@@ -121,8 +120,8 @@ pair <string,int> get_hostname_and_port (string & header)
 		return make_pair(hostname,port);
 	}
 }
-string get_IMS (string & header)
-                              {
+
+string get_IMS (string & header){
 	size_t IMS_location = header.find("If-Modified-Since");
 	string IMS;
 
@@ -135,8 +134,9 @@ string get_IMS (string & header)
 	cout << IMS << "\n";
 	return IMS;
 }
-string get_LM (string & header)
-                             {
+
+
+string get_LM (string & header){
 	size_t LM_location = header.find("Last-Modified: ");
 	string LM;
 
@@ -148,8 +148,9 @@ string get_LM (string & header)
 	//cout << LM << "\n";
 	return LM;
 }
-bool change_IMS (string & header)
-                               {
+
+
+bool change_IMS (string & header){
 	bool change = false;
 	string IMS = get_IMS(header);
 	string LM = get_LM(header);
@@ -158,8 +159,9 @@ bool change_IMS (string & header)
 	}
 	return change;
 }
-bool get_cache (string & header)
-                              {
+
+
+bool get_cache (string & header){
 	size_t CC_location = header.find("Cache-Control");
 	string CC;
 	bool no_cache = false;
@@ -173,8 +175,9 @@ bool get_cache (string & header)
 	cout << CC << "\n";
 	return no_cache;
 }
-int get_status_code (string header)
-                                  {
+
+
+int get_status_code (string header){
 	size_t status_location = header.find("HTTP/1.1 ");
 
 	status_location += 9; // length of "HTTP/1.1 "
@@ -185,14 +188,16 @@ int get_status_code (string header)
 	return status;
 	
 }
-string get_url (string & header)
-                              {
+
+
+string get_url (string & header){
 	size_t space_ind = header.find(" ", 4);
 	string url = header.substr(4, space_ind - 4 + 1 - 1); // exclude ending space
 	return url;
 }
-string get_extension (string & header)
-                                    {
+
+
+string get_extension (string & header){
 	string url = get_url(header);
 	size_t dot_ind = url.find_last_of(".");
 	size_t bs_ind = url.find_last_of("/");
@@ -203,8 +208,8 @@ string get_extension (string & header)
 	}
 	return ext;
 }
-bool is_valid_ext (string ext)
-                             {
+
+bool is_valid_ext (string ext){
 	transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
 	string exts[] = {"html", "pdf" ,"jpg", "gif","txt"};
 	for (int i=0,len=sizeof(exts)/sizeof(exts[0]);i<len;i++){
