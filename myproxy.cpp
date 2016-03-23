@@ -48,8 +48,8 @@ string rec_header(int client_socket, size_t max_length = 2500){
 		string header(payload);
 		return header;
 	} else {
-		puts("HEADER----");
-		puts(payload);
+		//puts("HEADER----");
+		//puts(payload);
 		printf("[%d] Error receiving header.\n", client_socket);
 		return "";
 	}
@@ -159,7 +159,7 @@ void open_ext_conn(int client_socket, string &header, char *hostname, int port, 
 	bcopy((char *) host -> h_addr, (char *) &server_addr.sin_addr.s_addr, host -> h_length);
 	int ext_conn_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
-	printf("[%d] before connect\n", client_socket);
+	//printf("[%d] before connect\n", client_socket);
 	int remote_socket = connect(ext_conn_socket, (struct sockaddr *) &server_addr, sizeof(server_addr));
 
 	printf("[%d] after connect\n", client_socket);

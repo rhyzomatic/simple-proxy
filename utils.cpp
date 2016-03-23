@@ -154,7 +154,7 @@ string get_IMS (string & header){
 		cout << IMS_location << "\n";
 	}
 	
-	cout << IMS << "\n";
+	//cout << IMS << "\n";
 	return IMS;
 }
 
@@ -172,6 +172,29 @@ string get_LM (string & header){
 	return LM;
 }
 
+string get_Connection(string &header){
+	size_t con_location = header.find("Connection: ");
+	string con;
+
+	if(con_location != string::npos){
+		con_location += 12; //length of "Connection: "
+		con = header.substr(con_location, header.find("\r\n",con_location) - con_location);
+	}
+
+	return con;
+}
+
+string get_Proxy_Connection(string &header){
+	size_t Proxy_con_location = header.find("Proxy-Connection: ");
+	string Proxy_con;
+
+	if(Proxy_con_location != string::npos){
+		Proxy_con_location += 18; //length of "Connection: "
+		Proxy_con = header.substr(Proxy_con_location, header.find("\r\n",Proxy_con_location) - Proxy_con_location);
+	}
+	//cout << Proxy_con << "\n";
+	return Proxy_con;
+}
 
 string replace_IMS (string header, string new_IMS){
 	
@@ -184,7 +207,7 @@ string replace_IMS (string header, string new_IMS){
 		header.insert(header.find("\r\n"),"\r\nIf-Modified-Since: " + new_IMS);
 	}
 
-	cout << header << endl;
+	//cout << header << endl;
 	return header;
 }
 
@@ -202,7 +225,7 @@ bool get_cache (string & header){
 			no_cache = true;
 		}
 	}
-	cout << CC << "\n";
+	//cout << CC << "\n";
 	return no_cache;
 }
 

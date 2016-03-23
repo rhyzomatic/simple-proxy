@@ -47,5 +47,7 @@ time_t cache_LM(std::string url);
 time_t str_to_time(std::string time);
 struct hostent *gethostname (char *host);
 std::string time_to_str(time_t IMS);
+std::string get_Connection (std::string & header);
+std::string get_Proxy_Connection (std::string & header);
 
 #endif

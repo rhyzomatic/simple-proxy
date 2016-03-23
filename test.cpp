@@ -140,6 +140,22 @@ void test_time_to_str(){
 	assert("Wed, 19 Oct 2005 10:50:00 GMT" == time_to_str(IMS)); 
 }
 
+void test_get_Connection(){
+	string str = "HTTP/1.1 200 OK\r\nServer: Apache/2.2.14 (Win32)\r\nIf-Modified-Since: Wed, 19 Oct 2005 10:50:00 GMT\r\nAccept-Ranges: bytes\r\nCache-control: no-cache\r\nConnection: close\r\nContent-Type: text/html\r\nX-Pad: avoid browser bug\r\n\r\n<html><body><h1>It works!</h1></body></html>";
+	assert( "close" == get_Connection(str));
+
+	//string str2 = "HTTP/1.1 200 OK\r\nServer: Apache/2.2.14 (Win32)\r\nIf-Modified-Since: Wed, 19 Oct 2005 10:50:00 GMT\r\nAccept-Ranges: bytes\r\nCache-control: no-cache\r\nConnection: alive\r\nContent-Type: text/html\r\nX-Pad: avoid browser bug\r\n\r\n<html><body><h1>It works!</h1></body></html>";
+	//assert( "close" == get_Connection(str2));
+}
+
+void test_get_Proxy_Connection(){
+	string str = "HTTP/1.1 200 OK\r\nServer: Apache/2.2.14 (Win32)\r\nIf-Modified-Since: Wed, 19 Oct 2005 10:50:00 GMT\r\nAccept-Ranges: bytes\r\nCache-control: no-cache\r\nConnection: close\r\nProxy-Connection: keep-alive\r\nContent-Type: text/html\r\nX-Pad: avoid browser bug\r\n\r\n<html><body><h1>It works!</h1></body></html>";
+	assert( "keep-alive" == get_Proxy_Connection(str));
+
+	//string str2 = "HTTP/1.1 200 OK\r\nServer: Apache/2.2.14 (Win32)\r\nIf-Modified-Since: Wed, 19 Oct 2005 10:50:00 GMT\r\nAccept-Ranges: bytes\r\nCache-control: no-cache\r\nConnection: close\r\nProxy-Connection: close\r\nContent-Type: text/html\r\nX-Pad: avoid browser bug\r\n\r\n<html><body><h1>It works!</h1></body></html>";
+	//assert( "keep-alive" == get_Proxy_Connection(str2));
+}
+
 
 
 
@@ -157,5 +173,7 @@ int main(){
 	test_get_status_code();
 	test_str_to_time();
 	test_time_to_str();
+	test_get_Connection();
+	test_get_Proxy_Connection();
 }
 
